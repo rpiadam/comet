@@ -63,10 +63,10 @@ Info MyInformation[] = {
 #endif /* UH PATH */
 
 #ifdef SOMAXCONN
-	{"SOLANUM_SOMAXCONN", "", SOMAXCONN,
+	{"COMET_SOMAXCONN", "", SOMAXCONN,
 	 "Maximum Queue Length of Pending Connections"},
 #else
-	{"SOLANUM_SOMAXCONN", "", SOLANUM_SOMAXCONN,
+	{"COMET_SOMAXCONN", "", COMET_SOMAXCONN,
 	 "Maximum Queue Length of Pending Connections"},
 #endif /* SOMAXCONN */
 

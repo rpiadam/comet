@@ -3,11 +3,11 @@
  *
  */
 
-#ifndef _SOLANUM_RES_H
-#define _SOLANUM_RES_H
+#ifndef _COMET_RES_H
+#define _COMET_RES_H
 
 /* Maximum number of nameservers in /etc/resolv.conf we care about
- * In hybrid, this was 2 -- but in Solanum, we want to track
+ * In hybrid, this was 2 -- but in Comet, we want to track
  * a few more than that ;) --nenolod
  */
 #define IRCD_MAXNS 10

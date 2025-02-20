@@ -18,8 +18,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __SOLANUM_AUTHD_NOTICE_H__
-#define __SOLANUM_AUTHD_NOTICE_H__
+#ifndef __COMET_AUTHD_NOTICE_H__
+#define __COMET_AUTHD_NOTICE_H__
 
 typedef enum
 {
@@ -35,4 +35,4 @@ void stats_result(uint32_t cid, char letter, const char *fmt, ...);
 void stats_error(uint32_t cid, char letter, const char *fmt, ...);
 void stats_done(uint32_t cid, char letter);
 
-#endif /* __SOLANUM_AUTHD_NOTICE_H__ */
+#endif /* __COMET_AUTHD_NOTICE_H__ */

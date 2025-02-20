@@ -1,5 +1,5 @@
 /*
- *  solanum
+ *  comet
  *  dns.h: A header with the DNS functions.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
@@ -23,8 +23,8 @@
  *  USA
  */
 
-#ifndef SOLANUM_DNS_H
-#define SOLANUM_DNS_H
+#ifndef COMET_DNS_H
+#define COMET_DNS_H
 
 #include "stdinc.h"
 #include "authproc.h"

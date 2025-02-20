@@ -1,5 +1,5 @@
 /*
- *  Solanum: a slightly advanced ircd
+ *  Comet: a slightly advanced ircd
  *  ircd.c: Starts up and runs the ircd.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
@@ -204,7 +204,7 @@ init_sys(void)
 		if(maxconnections <= MAX_BUFFER)
 		{
 			fprintf(stderr, "ERROR: Shell FD limits are too low.\n");
-			fprintf(stderr, "ERROR: solanum reserves %d FDs, shell limits must be above this\n", MAX_BUFFER);
+			fprintf(stderr, "ERROR: comet reserves %d FDs, shell limits must be above this\n", MAX_BUFFER);
 			exit(EXIT_FAILURE);
 		}
 		return;
@@ -448,7 +448,7 @@ ircd_restart_cb(const char *str)
 /*
  * Why EXIT_FAILURE here?
  * Because if ircd_die_cb() is called it's because of a fatal
- * error inside libsolanum, and we don't know how to handle the
+ * error inside libcomet, and we don't know how to handle the
  * exception, so it is logical to return a FAILURE exit code here.
  *    --nenolod
  */
@@ -522,7 +522,7 @@ seed_random(void *unused)
  * Side Effects - this is where the ircd gets going right now
  */
 int
-solanum_main(int argc, char * const argv[])
+comet_main(int argc, char * const argv[])
 {
 	int fd;
 

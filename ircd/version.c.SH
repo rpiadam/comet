@@ -1,7 +1,7 @@
 #!/bin/sh
 
 spitshell=cat
-package=solanum
+package=comet
 
 echo "Extracting $package/src/version.c..."
 

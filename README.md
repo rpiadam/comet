@@ -1,6 +1,6 @@
-# solanum ![Build Status](https://github.com/chatcoders/solanum/workflows/CI/badge.svg)
+# comet ![Build Status](https://github.com/VibeDevelopers/comet/workflows/CI/badge.svg)
 
-Solanum is an IRCv3 server designed to be highly scalable.  It implements IRCv3.1 and some parts of IRCv3.2.
+Comet is an IRCv3 server designed to be highly scalable.  It implements IRCv3.1 and some parts of IRCv3.2.
 
 It is meant to be used with an IRCv3-capable services implementation such as [Atheme][atheme] or [Anope][anope].
 
@@ -15,7 +15,7 @@ It is meant to be used with an IRCv3-capable services implementation such as [At
 
 # platforms
 
-Solanum is developed on Linux with glibc, but is currently portable to most POSIX-compatible operating systems.
+Comet is developed on Linux with glibc, but is currently portable to most POSIX-compatible operating systems.
 However, this portability is likely to be removed unless someone is willing to maintain it.  If you'd like to be that
 person, please let us know on IRC.
 
@@ -40,13 +40,13 @@ These are known issues and workarounds for various platforms.
    as a 32-bit binary, it should be started as:
 
    ```bash
-   ulimit -n 4095 ; LD_PRELOAD_32=/usr/lib/extendedFILE.so.1 ./solanum
+   ulimit -n 4095 ; LD_PRELOAD_32=/usr/lib/extendedFILE.so.1 ./comet
    ```
 
 # building
 
 ```bash
-sudo apt install build-essential pkg-config automake libtool libsqlite3-dev # or equivalent for your distribution
+sudo apt install build-essential pkg-config automake libtool libsqlite3-dev # or equivalent
 ./autogen.sh
 ./configure --prefix=/path/to/installation
 make
@@ -74,7 +74,7 @@ See `./configure --help` for build options.
 
 # tips
 
- * To report bugs in Solanum, visit us at `#solanum` on [Libera Chat](https://libera.chat)
+ * To report bugs in Comet, visit us at `#VibeDevelopers` on [VibeTalk](https://www.vibetalk.net)
 
  * Please read [doc/readme.txt](doc/readme.txt) to get an overview of the current documentation.
 
@@ -82,13 +82,13 @@ See `./configure --help` for build options.
 
  * The files, `/etc/services`, `/etc/protocols`, and `/etc/resolv.conf`, SHOULD be
    readable by the user running the server in order for ircd to start with
-   the correct settings.  If these files are wrong, Solanum will try to use
+   the correct settings.  If these files are wrong, Comet will try to use
    `127.0.0.1` for a resolver as a last-ditch effort.
 
 # git access
 
- * The Solanum git repository can be checked out using the following command:
-	`git clone https://github.com/solanum-ircd/solanum`
+ * The Comet git repository can be checked out using the following command:
+	`git clone https://github.com/VibeDevelopers/comet.git`
 
- * Solanum's git repository can be browsed over the Internet at the following address:
-	https://github.com/solanum-ircd/solanum
+ * Comet's git repository can be browsed over the Internet at the following address:
+	https://github.com/VibeDevelopers/comet.git

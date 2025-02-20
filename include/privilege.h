@@ -1,5 +1,5 @@
 /*
- * Solanum: a slightly advanced ircd
+ * Comet: a slightly advanced ircd
  * privilege.h: Dynamic privileges API.
  *
  * Copyright (c) 2021 Ed Kellett <e@kellett.im>
@@ -38,8 +38,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __SOLANUM_PRIVILEGE_H
-#define __SOLANUM_PRIVILEGE_H
+#ifndef __COMET_PRIVILEGE_H
+#define __COMET_PRIVILEGE_H
 
 #include "stdinc.h"
 

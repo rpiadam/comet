@@ -1,5 +1,5 @@
 /*
- * solanum - an advanced ircd.
+ * comet - an advanced ircd.
  * Copyright (c) 2016 Ariadne Conill <ariadne@dereferenced.org>.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -19,8 +19,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SOLANUM__MSGBUF_H
-#define SOLANUM__MSGBUF_H
+#ifndef COMET__MSGBUF_H
+#define COMET__MSGBUF_H
 
 #define MAXPARA		(15)
 
