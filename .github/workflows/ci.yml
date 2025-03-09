@@ -25,9 +25,7 @@ on:
 jobs:
   linux:
     name: Linux
-
     runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -37,7 +35,7 @@ jobs:
             compiler: gcc-10
           - os: ubuntu-22.04
             compiler: clang-11
-	  # Debian 12 Bookworm
+          # Debian 12 Bookworm
           - os: ubuntu-24.04
             compiler: gcc-12
           - os: ubuntu-24.04
@@ -71,14 +69,14 @@ jobs:
           automake \
           autoconf \
           libtool \
-	  libltdl-dev \
+          libltdl-dev \
           libsqlite3-dev \
           libhyperscan-dev \
           # EOF
     - uses: actions/checkout@main
-       with:
-         persist-credentials: false
-         submodules: recursive
+      with:
+        persist-credentials: false
+        submodules: recursive
     - name: autogen.sh
       run: bash autogen.sh
     - name: configure
