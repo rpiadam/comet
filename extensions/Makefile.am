@@ -19,7 +19,7 @@ extension_LTLIBRARIES =		\
   extb_account.la		\
   extb_canjoin.la		\
   extb_channel.la		\
-	extb_guest.la		\
+  extb_guest.la			\
   extb_hostmask.la		\
   extb_oper.la			\
   extb_server.la		\
@@ -33,7 +33,6 @@ extension_LTLIBRARIES =		\
   hurt.la			\
   invite_notify.la		\
   ip_cloaking.la		\
-  ip_cloaking_old.la		\
   ip_cloaking_3.0.la		\
   ip_cloaking_4.0.la		\
   override.la			\
