@@ -588,7 +588,7 @@ COMET_C_GCC_TRY_FLAGS([-Wmissing-noreturn], comet_cv_c_gcc_w_missing_noreturn)
 COMET_C_GCC_TRY_FLAGS([-Wundef], comet_cv_c_gcc_w_undef)
 COMET_C_GCC_TRY_FLAGS([-Wpacked], comet_cv_c_gcc_w_packed)
 COMET_C_GCC_TRY_FLAGS([-Wnested-externs], comet_cv_c_gcc_w_nested_externs)
-COMET_C_GCC_TRY_FLAGS([-Wunused-function -Wunused-label -Wunused-value -Wunused-variable], comet_cv_c_gcc_w_unused)
+COMET_C_GCC_TRY_FLAGS([-Wunused-function -Wunused-label -Wunused-variable], comet_cv_c_gcc_w_unused)
 COMET_C_GCC_TRY_FLAGS([-Wredundant-decls], comet_cv_c_gcc_w_redundant_decls)
 COMET_C_GCC_TRY_FLAGS([-Wfloat-equal], comet_cv_c_gcc_w_float_equal)
 COMET_C_GCC_TRY_FLAGS([-Wformat -Wformat-y2k -Wno-format-security], comet_cv_c_gcc_w_format)
@@ -618,6 +618,11 @@ else
 	prefix=`echo $prefix | sed 's/\/$//'`
 	AC_DEFINE_UNQUOTED(IRCD_PREFIX, "$prefix", [Prefix where the ircd is installed.])
 fi
+
+if test "x${RUNNING_IN_CI}" = "xyes"; then
+ 	IRC_CFLAGS="${IRC_CFLAGS} -Werror -Wno-unused-value -Wno-unused-parameter"
+ 	AC_SUBST(IRC_CFLAGS)
+ fi
 
 AC_CONFIG_FILES(			\
 	Makefile			\

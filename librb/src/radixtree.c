@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * Solanum: a slightly advanced ircd
  * rb_radixtree.c: Dictionary-based information storage.
  *
  * Copyright (c) 2007-2016 Ariadne Conill <ariadne -at- dereferenced.org>
@@ -673,8 +673,7 @@ rb_radixtree_elem_add(rb_radixtree *dict, const char *key, void *data)
 	char *ckey;
 
 	rb_radixtree_elem *delem, *prev, *newnode;
-
-	rb_radixtree_elem **place1;
+	rb_radixtree_leaf *leaf;
 
 	int val, keylen;
 	int i, j;
@@ -723,16 +722,16 @@ rb_radixtree_elem_add(rb_radixtree *dict, const char *key, void *data)
 	{
 		lrb_assert(prev == NULL);
 		lrb_assert(dict->count == 0);
-		place1 = &dict->root;
-		*place1 = rb_malloc(sizeof(rb_radixtree_leaf));
-		lrb_assert(*place1 != NULL);
-		(*place1)->nibnum = -1;
-		(*place1)->leaf.data = data;
-		(*place1)->leaf.key = ckey;
-		(*place1)->leaf.parent = prev;
-		(*place1)->leaf.parent_val = val;
+		leaf = rb_malloc(sizeof(rb_radixtree_leaf));
+		lrb_assert(leaf != NULL);
+		leaf->nibnum = -1;
+		leaf->data = data;
+		leaf->key = ckey;
+		leaf->parent = prev;
+		leaf->parent_val = val;
+		dict->root = (rb_radixtree_elem *) leaf;
 		dict->count++;
-		return &(*place1)->leaf;
+		return leaf;
 	}
 
 	/* Find the first nibble where they differ. */
@@ -802,17 +801,17 @@ rb_radixtree_elem_add(rb_radixtree *dict, const char *key, void *data)
 	}
 
 	val = NIBBLE_VAL(ckey, i);
-	place1 = &newnode->node.down[val];
-	lrb_assert(*place1 == NULL);
-	*place1 = rb_malloc(sizeof(rb_radixtree_leaf));
-	lrb_assert(*place1 != NULL);
-	(*place1)->nibnum = -1;
-	(*place1)->leaf.data = data;
-	(*place1)->leaf.key = ckey;
-	(*place1)->leaf.parent = newnode;
-	(*place1)->leaf.parent_val = val;
+	lrb_assert(newnode->node.down[val] == NULL);
+	leaf = rb_malloc(sizeof(rb_radixtree_leaf));
+	lrb_assert(leaf != NULL);
+	leaf->nibnum = -1;
+	leaf->data = data;
+	leaf->key = ckey;
+	leaf->parent = newnode;
+	leaf->parent_val = val;
+	newnode->node.down[val] = (rb_radixtree_elem *) leaf;
 	dict->count++;
-	return &(*place1)->leaf;
+	return leaf;
 }
 
 int
@@ -1098,4 +1097,3 @@ rb_radixtree_stats_walk(void (*cb)(const char *line, void *privdata), void *priv
 		rb_radixtree_stats(ptr->data, cb, privdata);
 	}
 }
-
