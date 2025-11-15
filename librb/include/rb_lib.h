@@ -14,19 +14,14 @@
 #undef alloca
 #define alloca __builtin_alloca
 #else
-# ifdef _MSC_VER
-#  include <malloc.h>
-#  define alloca _alloca
+# if RB_HAVE_ALLOCA_H
+#  include <alloca.h>
 # else
-#  if RB_HAVE_ALLOCA_H
-#   include <alloca.h>
-#  else
-#   ifdef _AIX
+#  ifdef _AIX
 #pragma alloca
-#   else
-#    ifndef alloca		/* predefined by HP cc +Olibcalls */
+#  else
+#   ifndef alloca		/* predefined by HP cc +Olibcalls */
 char *alloca();
-#    endif
 #   endif
 #  endif
 # endif
