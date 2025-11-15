@@ -23,8 +23,23 @@
 
 static const char url_title_desc[] = "Fetches and displays URL titles from messages";
 
+#define URL_TITLE_RATE_LIMIT 5  /* Max URLs per minute per user */
+#define URL_TITLE_RATE_WINDOW 60
+
+struct url_rate_limit {
+	struct Client *client;
+	time_t window_start;
+	int count;
+	rb_dlink_node node;
+};
+
+static rb_dlink_list url_rate_limits;
+static struct ev_entry *url_rate_cleanup_ev;
+
 static void hook_privmsg_channel(void *);
 static void hook_privmsg_user(void *);
+static void url_rate_cleanup(void *);
+static bool check_url_rate_limit(struct Client *client_p);
 
 mapi_hfn_list_av1 url_title_hfnlist[] = {
 	{ "privmsg_channel", hook_privmsg_channel },
