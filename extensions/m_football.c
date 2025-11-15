@@ -473,12 +473,59 @@ m_football(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 	struct football_request *req;
 	
 	if (parc < 2 || EmptyString(parv[1])) {
-		sendto_one_notice(source_p, ":*** Syntax: FOOTBALL <news|league|team> [channel]");
+		sendto_one_notice(source_p, ":*** Syntax: FOOTBALL <news|league|team|subscribe|unsubscribe> [channel]");
 		sendto_one_notice(source_p, ":*** Examples: FOOTBALL news, FOOTBALL news #football");
+		sendto_one_notice(source_p, ":*** Subscribe: FOOTBALL subscribe #channel [league] [team]");
 		return;
 	}
 
 	query = (char *)parv[1];
+	
+	/* Handle subscription commands */
+	if (strcasecmp(query, "subscribe") == 0) {
+		if (parc < 3 || EmptyString(parv[2])) {
+			sendto_one_notice(source_p, ":*** Syntax: FOOTBALL subscribe <channel> [league] [team]");
+			return;
+		}
+		
+		struct Channel *chptr = find_channel(parv[2]);
+		if (chptr == NULL) {
+			sendto_one_notice(source_p, ":*** Channel %s not found", parv[2]);
+			return;
+		}
+		
+		char *league = (parc > 3 && !EmptyString(parv[3])) ? (char *)parv[3] : NULL;
+		char *team = (parc > 4 && !EmptyString(parv[4])) ? (char *)parv[4] : NULL;
+		
+		add_football_channel(chptr->chname, league, team);
+		sendto_one_notice(source_p, ":*** Channel %s subscribed to football news updates", chptr->chname);
+		return;
+	}
+	
+	if (strcasecmp(query, "unsubscribe") == 0) {
+		if (parc < 3 || EmptyString(parv[2])) {
+			sendto_one_notice(source_p, ":*** Syntax: FOOTBALL unsubscribe <channel>");
+			return;
+		}
+		
+		rb_dlink_node *ptr, *next;
+		RB_DLINK_FOREACH_SAFE(ptr, next, football_channels.head) {
+			struct football_channel *fc = ptr->data;
+			if (strcasecmp(fc->channel, parv[2]) == 0) {
+				rb_dlinkDelete(ptr, &football_channels);
+				rb_free(fc->channel);
+				if (fc->league != NULL)
+					rb_free(fc->league);
+				if (fc->team != NULL)
+					rb_free(fc->team);
+				rb_free(fc);
+				sendto_one_notice(source_p, ":*** Channel %s unsubscribed from football news", parv[2]);
+				return;
+			}
+		}
+		sendto_one_notice(source_p, ":*** Channel %s is not subscribed", parv[2]);
+		return;
+	}
 	
 	req = rb_malloc(sizeof(struct football_request));
 	req->source_p = source_p;
