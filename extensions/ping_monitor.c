@@ -27,7 +27,6 @@
 static const char ping_monitor_desc[] = "Monitors server ping times and latency statistics";
 
 static void m_pingstats(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
-static void hook_ping(void *);
 static void ping_update(void *);
 
 struct ping_stat {
@@ -43,11 +42,6 @@ struct ping_stat {
 
 static rb_dlink_list ping_stats;
 static rb_event *ping_update_event;
-
-mapi_hfn_list_av1 ping_monitor_hfnlist[] = {
-	{ "ping", hook_ping },
-	{ NULL, NULL }
-};
 
 struct Message pingstats_msgtab = {
 	"PINGSTATS", 0, 0, 0, 0,
@@ -70,31 +64,8 @@ find_ping_stat(struct Client *server_p)
 	return NULL;
 }
 
-static void
-hook_ping(void *data_)
-{
-	hook_data_ping *data = data_;
-	struct ping_stat *stat;
-	time_t now = rb_current_time();
-
-	if (!IsServer(data->target_p))
-		return;
-
-	stat = find_ping_stat(data->target_p);
-	if (stat == NULL) {
-		stat = rb_malloc(sizeof(struct ping_stat));
-		stat->server_p = data->target_p;
-		stat->last_ping = now;
-		stat->last_pong = 0;
-		stat->ping_count = 0;
-		stat->total_time = 0;
-		stat->min_ping = ULONG_MAX;
-		stat->max_ping = 0;
-		rb_dlinkAddAlloc(stat, &ping_stats);
-	} else {
-		stat->last_ping = now;
-	}
-}
+/* Note: Ping monitoring would require hooking into PING/PONG messages */
+/* For now, we'll track based on server connections and update events */
 
 static void
 ping_update(void *unused)
@@ -183,5 +154,5 @@ moddeinit(void)
 	}
 }
 
-DECLARE_MODULE_AV2(ping_monitor, modinit, moddeinit, ping_monitor_clist, NULL, ping_monitor_hfnlist, NULL, NULL, ping_monitor_desc);
+DECLARE_MODULE_AV2(ping_monitor, modinit, moddeinit, ping_monitor_clist, NULL, NULL, NULL, NULL, ping_monitor_desc);
 

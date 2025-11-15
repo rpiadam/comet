@@ -77,9 +77,9 @@ m_slots(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	}
 
 	/* Spin the reels */
-	s1 = symbols[arc4random() % NUM_SYMBOLS];
-	s2 = symbols[arc4random() % NUM_SYMBOLS];
-	s3 = symbols[arc4random() % NUM_SYMBOLS];
+	s1 = symbols[rb_random() % NUM_SYMBOLS];
+	s2 = symbols[rb_random() % NUM_SYMBOLS];
+	s3 = symbols[rb_random() % NUM_SYMBOLS];
 
 	payout = get_payout(s1, s2, s3, bet);
 
