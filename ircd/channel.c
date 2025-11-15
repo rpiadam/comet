@@ -185,19 +185,41 @@ find_channel_membership(struct Channel *chptr, struct Client *client_p)
 
 /* find_channel_status()
  *
- * input	- membership to get status for, whether we can combine flags
+ * input	- membership to get status for, whether we can combine flags, optional viewer
  * output	- flags of user on channel
  * side effects -
  */
 const char *
 find_channel_status(struct membership *msptr, int combine)
 {
+	return find_channel_status_viewer(msptr, combine, NULL);
+}
+
+const char *
+find_channel_status_viewer(struct membership *msptr, int combine, struct Client *viewer)
+{
 	static char buffer[3];
 	char *p;
+	struct Channel *chptr = msptr->chptr;
+	bool show_op = true;
 
 	p = buffer;
 
-	if(is_chanop(msptr))
+	/* Check for anonymous ops mode - hide op status from non-ops */
+	if (is_chanop(msptr) && viewer && MyClient(viewer))
+	{
+		hook_data_channel_approval hdata;
+		struct membership *viewer_msptr = find_channel_membership(chptr, viewer);
+		
+		/* If channel has anonymous mode and viewer is not an oper or op, hide op status */
+		if (chptr->mode.mode & MODE_ANONYMOUS)
+		{
+			if (!IsOper(viewer) && (!viewer_msptr || !is_chanop(viewer_msptr)))
+				show_op = false;
+		}
+	}
+
+	if(is_chanop(msptr) && show_op)
 	{
 		if(!combine)
 			return "@";
@@ -511,7 +533,7 @@ channel_member_names(struct Channel *chptr, struct Client *client_p, int show_eo
 			if (IsCapable(client_p, CLICAP_USERHOST_IN_NAMES))
 			{
 				send_multiline_item(client_p, "%s%s!%s@%s",
-						find_channel_status(msptr, stack),
+						find_channel_status_viewer(msptr, stack, client_p),
 						target_p->name,
 						target_p->username,
 						target_p->host);
@@ -519,7 +541,7 @@ channel_member_names(struct Channel *chptr, struct Client *client_p, int show_eo
 			else
 			{
 				send_multiline_item(client_p, "%s%s",
-						find_channel_status(msptr, stack),
+						find_channel_status_viewer(msptr, stack, client_p),
 						target_p->name);
 			}
 		}

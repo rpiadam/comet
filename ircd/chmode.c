@@ -92,7 +92,8 @@ construct_cflags_strings(void)
 				chmode_table[i].set_func != chm_key &&
 				chmode_table[i].set_func != chm_limit &&
 				chmode_table[i].set_func != chm_op &&
-				chmode_table[i].set_func != chm_voice)
+				chmode_table[i].set_func != chm_voice &&
+				chmode_table[i].set_func != chm_halfop)
 		{
 			chmode_flags[i] = chmode_table[i].mode_type;
 		}
@@ -1064,6 +1065,92 @@ chm_voice(struct Client *source_p, struct Channel *chptr,
 }
 
 void
+chm_halfop(struct Client *source_p, struct Channel *chptr,
+	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
+{
+	struct membership *mstptr;
+	struct Client *targ_p;
+
+	/* Halfops can be set by ops or halfops */
+	if(alevel < CHFL_CHANOP && alevel < CHFL_HALFOP)
+	{
+		if(!(*errors & SM_ERR_NOOPS))
+			sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+				   me.name, source_p->name, chptr->chname);
+		*errors |= SM_ERR_NOOPS;
+		return;
+	}
+
+	/* Check mlock */
+	if (MyClient(source_p) && chptr->mode_lock && strchr(chptr->mode_lock, c))
+	{
+		if (!(*errors & SM_ERR_MLOCK))
+			sendto_one_numeric(source_p,
+					ERR_MLOCKRESTRICTED,
+					form_str(ERR_MLOCKRESTRICTED),
+					chptr->chname,
+					c,
+					chptr->mode_lock);
+		*errors |= SM_ERR_MLOCK;
+		return;
+	}
+
+	/* empty nick */
+	if(EmptyString(arg))
+	{
+		sendto_one_numeric(source_p, ERR_NOSUCHNICK, form_str(ERR_NOSUCHNICK), "*");
+		return;
+	}
+
+	if((targ_p = find_chasing(source_p, arg, NULL)) == NULL)
+	{
+		return;
+	}
+
+	mstptr = find_channel_membership(chptr, targ_p);
+
+	if(mstptr == NULL)
+	{
+		if(!(*errors & SM_ERR_NOTONCHANNEL) && MyClient(source_p))
+			sendto_one_numeric(source_p, ERR_USERNOTINCHANNEL,
+					   form_str(ERR_USERNOTINCHANNEL), arg, chptr->chname);
+		*errors |= SM_ERR_NOTONCHANNEL;
+		return;
+	}
+
+	if(dir == MODE_ADD)
+	{
+		if(targ_p == source_p && mstptr->flags & CHFL_HALFOP)
+			return;
+
+		mode_changes[mode_count].letter = c;
+		mode_changes[mode_count].dir = MODE_ADD;
+		mode_changes[mode_count].mems = ALL_MEMBERS;
+		mode_changes[mode_count].id = targ_p->id;
+		mode_changes[mode_count++].arg = targ_p->name;
+
+		mstptr->flags |= CHFL_HALFOP;
+	}
+	else
+	{
+		if(MyClient(source_p) && IsService(targ_p))
+		{
+			sendto_one(source_p, form_str(ERR_ISCHANSERVICE),
+				   me.name, source_p->name, targ_p->name, chptr->chname);
+			return;
+		}
+
+		mode_changes[mode_count].letter = c;
+		mode_changes[mode_count].dir = MODE_DEL;
+		mode_changes[mode_count].mems = ALL_MEMBERS;
+		mode_changes[mode_count].id = targ_p->id;
+		mode_changes[mode_count++].arg = targ_p->name;
+
+		mstptr->flags &= ~CHFL_HALFOP;
+	}
+}
+
+void
 chm_limit(struct Client *source_p, struct Channel *chptr,
 	  int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
@@ -1283,6 +1370,7 @@ struct ChannelMode chmode_table[256] =
   ['e'] = {chm_ban,       CHFL_EXCEPTION,  CHM_QUERYABLE | CHM_OPS_QUERY },
   ['f'] = {chm_forward,   0,               CHM_ARG_SET | CHM_CAN_QUERY },   /* weird because it's nonstandard and violates isupport */
   ['g'] = {chm_simple,    MODE_FREEINVITE, 0 },
+  ['h'] = {chm_halfop,    0,               CHM_ARGS },
   ['i'] = {chm_simple,    MODE_INVITEONLY, 0 },
   ['j'] = {chm_throttle,  0,               CHM_ARG_SET },
   ['k'] = {chm_key,       0,               CHM_QUERYABLE },

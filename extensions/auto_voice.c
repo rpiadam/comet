@@ -22,6 +22,7 @@
 static const char auto_voice_desc[] = "Auto-voices users on join in configured channels";
 
 static rb_dlink_list auto_voice_channels;
+static bool auto_voice_enabled = true;
 
 struct auto_voice_channel {
 	char *channel;
@@ -30,6 +31,7 @@ struct auto_voice_channel {
 };
 
 static void hook_channel_join(void *);
+static void add_auto_voice_channel(const char *channel, const char *mask);
 
 mapi_hfn_list_av1 auto_voice_hfnlist[] = {
 	{ "channel_join", hook_channel_join },
@@ -58,12 +60,39 @@ should_auto_voice(struct Client *client_p, struct Channel *chptr)
 }
 
 static void
+add_auto_voice_channel(const char *channel, const char *mask)
+{
+	struct auto_voice_channel *avc;
+
+	/* Check if channel already exists */
+	rb_dlink_node *ptr;
+	RB_DLINK_FOREACH(ptr, auto_voice_channels.head) {
+		struct auto_voice_channel *existing = ptr->data;
+		if (strcasecmp(existing->channel, channel) == 0) {
+			/* Update mask if provided */
+			if (mask != NULL) {
+				if (existing->mask != NULL)
+					rb_free(existing->mask);
+				existing->mask = mask != NULL ? rb_strdup(mask) : NULL;
+			}
+			return;
+		}
+	}
+
+	/* Add new channel */
+	avc = rb_malloc(sizeof(struct auto_voice_channel));
+	avc->channel = rb_strdup(channel);
+	avc->mask = mask != NULL ? rb_strdup(mask) : NULL;
+	rb_dlinkAdd(avc, &avc->node, &auto_voice_channels);
+}
+
+static void
 hook_channel_join(void *data_)
 {
 	hook_data_channel_activity *data = data_;
 	struct membership *msptr;
 
-	if (!MyClient(data->client))
+	if (!auto_voice_enabled || !MyClient(data->client))
 		return;
 
 	msptr = find_channel_membership(data->chptr, data->client);
@@ -80,5 +109,28 @@ hook_channel_join(void *data_)
 	}
 }
 
-DECLARE_MODULE_AV2(auto_voice, NULL, NULL, NULL, NULL, auto_voice_hfnlist, NULL, NULL, auto_voice_desc);
+static int
+_modinit(void)
+{
+	/* Configuration can be added here or via configuration file */
+	/* Example: add_auto_voice_channel("#test", NULL); */
+	/* Example: add_auto_voice_channel("#public", "*!*@*"); */
+	return 0;
+}
+
+static void
+_moddeinit(void)
+{
+	rb_dlink_node *ptr, *next;
+	RB_DLINK_FOREACH_SAFE(ptr, next, auto_voice_channels.head) {
+		struct auto_voice_channel *avc = ptr->data;
+		rb_dlinkDelete(ptr, &auto_voice_channels);
+		rb_free(avc->channel);
+		if (avc->mask != NULL)
+			rb_free(avc->mask);
+		rb_free(avc);
+	}
+}
+
+DECLARE_MODULE_AV2(auto_voice, _modinit, _moddeinit, NULL, NULL, auto_voice_hfnlist, NULL, NULL, auto_voice_desc);
 
