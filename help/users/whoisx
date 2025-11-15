@@ -1,0 +1,14 @@
+WHOISX <nickname>
+
+WHOISX provides extended WHOIS information about a user:
+  - Channel count and status breakdown (ops, halfops, voices)
+  - User information (nick!user@host)
+  - Realname
+  - IRC operator status
+  - Away status
+
+This is a more detailed version of the standard WHOIS command.
+
+Example:
+  WHOISX nickname
+

@@ -1,0 +1,21 @@
+CHANACCESS <channel> [type]
+
+CHANACCESS displays the access list for a channel, showing all
+members with their status prefixes (@ for ops, % for halfops,
++ for voices).
+
+Optional type parameter filters the list:
+  ops      - Show only channel operators
+  halfops  - Show only halfops
+  voices   - Show only voiced users
+  regular  - Show only regular members (no status)
+  all      - Show all members (default)
+
+Examples:
+  CHANACCESS #channel
+  CHANACCESS #channel ops
+  CHANACCESS #channel voices
+
+You must be a member of the channel to use this command
+(unless you are an IRC operator).
+

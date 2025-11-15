@@ -1,0 +1,16 @@
+CHANNELSTATS <channel>
+
+CHANNELSTATS displays detailed statistics about a channel:
+  - Member breakdown (total, ops, halfops, voices, regular)
+  - Ban list counts (bans, exceptions, invite exceptions, quiets)
+  - Channel age (time since creation)
+  - Topic age (time since topic was last set)
+
+This provides more detailed information than CHANINFO.
+
+Example:
+  CHANNELSTATS #channel
+
+You must be a member of the channel to use this command
+(unless you are an IRC operator).
+
