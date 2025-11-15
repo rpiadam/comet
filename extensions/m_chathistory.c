@@ -16,10 +16,12 @@
 #include "ircd.h"
 #include "send.h"
 #include "s_user.h"
+#include "s_serv.h"
 #include "channel.h"
 #include "hash.h"
 #include "parse.h"
 #include "numeric.h"
+#include "msgbuf.h"
 
 static const char chathistory_desc[] = "Provides CHATHISTORY command for querying message history";
 
@@ -38,6 +40,11 @@ DECLARE_MODULE_AV2(m_chathistory, NULL, NULL, chathistory_clist, NULL, NULL, NUL
 /* Access history through exported function */
 extern rb_dictionary_t *chm_history_dict_get(void);
 
+/* CHATHISTORY capability - defined in modules/cap_chathistory.c */
+extern unsigned int CLICAP_CHATHISTORY;
+/* Server-time capability - defined in modules/cap_server_time.c */
+extern unsigned int CLICAP_SERVER_TIME;
+
 struct history_entry {
 	char *nick;
 	char *text;
@@ -50,6 +57,22 @@ struct channel_history {
 	rb_dlink_list messages;
 	rb_dlink_node node;
 };
+
+/* Helper function to send history message with optional server-time tag */
+static void
+send_history_message(struct Client *source_p, struct history_entry *entry, struct Channel *chptr)
+{
+	if (CLICAP_SERVER_TIME != 0 && IsCapable(source_p, CLICAP_SERVER_TIME)) {
+		char time_str[64];
+		struct tm *tm_info = gmtime(&entry->timestamp);
+		strftime(time_str, sizeof(time_str), "%Y-%m-%dT%H:%M:%S.000Z", tm_info);
+		sendto_one(source_p, "@time=%s :%s!%s@%s PRIVMSG %s :%s",
+			time_str, entry->nick, entry->nick, "history", chptr->chname, entry->text);
+	} else {
+		sendto_one(source_p, ":%s!%s@%s PRIVMSG %s :%s",
+			entry->nick, entry->nick, "history", chptr->chname, entry->text);
+	}
+}
 
 static void
 m_chathistory(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
@@ -71,8 +94,11 @@ m_chathistory(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 		return;
 	}
 
-	/* CHATHISTORY capability check - if not defined, allow anyway */
-	/* This allows the command to work even if capability system isn't fully set up */
+	/* Check for CHATHISTORY capability */
+	if (CLICAP_CHATHISTORY != 0 && !IsCapable(source_p, CLICAP_CHATHISTORY)) {
+		sendto_one_notice(source_p, ":*** CHATHISTORY requires the draft/chathistory capability");
+		return;
+	}
 
 	target = parv[1];
 	query_type = parv[2];
@@ -131,8 +157,7 @@ m_chathistory(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 			if (count >= limit)
 				break;
 			entry = ptr->data;
-			sendto_one(source_p, ":%s!%s@%s PRIVMSG %s :%s",
-				entry->nick, entry->nick, "history", chptr->chname, entry->text);
+			send_history_message(source_p, entry, chptr);
 			count++;
 		}
 	}
@@ -172,8 +197,7 @@ m_chathistory(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 				entry = p->data;
 				if (abs((long)(entry->timestamp - target_time)) > 3600) /* 1 hour window */
 					break;
-				sendto_one(source_p, ":%s!%s@%s PRIVMSG %s :%s",
-					entry->nick, entry->nick, "history", chptr->chname, entry->text);
+				send_history_message(source_p, entry, chptr);
 				sent++;
 			}
 		}
@@ -188,8 +212,7 @@ m_chathistory(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 			entry = ptr->data;
 			if (entry->timestamp >= target_time)
 				continue;
-			sendto_one(source_p, ":%s!%s@%s PRIVMSG %s :%s",
-				entry->nick, entry->nick, "history", chptr->chname, entry->text);
+			send_history_message(source_p, entry, chptr);
 			count++;
 		}
 	}
@@ -203,8 +226,7 @@ m_chathistory(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 			entry = ptr->data;
 			if (entry->timestamp <= target_time)
 				continue;
-			sendto_one(source_p, ":%s!%s@%s PRIVMSG %s :%s",
-				entry->nick, entry->nick, "history", chptr->chname, entry->text);
+			send_history_message(source_p, entry, chptr);
 			count++;
 		}
 	}
