@@ -1,5 +1,5 @@
 /*
- *  comet: An advanced IRCd.
+ *  FoxComet: A modern, highly scalable IRCv3 server.
  *  s_assert.h: Definition of the soft assert (s_assert) macro.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center

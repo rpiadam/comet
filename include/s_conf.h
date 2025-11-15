@@ -1,5 +1,5 @@
 /*
- *  comet: Advanced, scalable Internet Relay Chat.
+ *  FoxComet: A modern, highly scalable IRCv3 server.
  *  s_conf.h: A header for the configuration functions.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
