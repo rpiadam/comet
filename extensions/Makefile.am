@@ -105,7 +105,22 @@ extension_LTLIBRARIES =		\
   umode_whois.la		\
   umode_deaf.la			\
   chm_large.la			\
-  metrics.la
+  metrics.la			\
+  chm_anonymous.la		\
+  m_thread.la			\
+  m_reaction.la			\
+  m_banlist.la			\
+  m_shun.la			\
+  m_zline.la			\
+  m_rline.la			\
+  m_znc.la			\
+  discord_relay.la			\
+  chm_unfiltered.la		\
+  cap_extended_monitor.la	\
+  m_chathistory.la		\
+  m_chanaccess.la		\
+  m_search.la			\
+  m_topic_history.la
 
 if HAVE_HYPERSCAN
     extension_LTLIBRARIES += filter.la
