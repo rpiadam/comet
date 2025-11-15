@@ -25,35 +25,100 @@ static unsigned int mode_delayjoin;
 
 static void hook_join_channel(void *);
 static void hook_privmsg_channel(void *);
+static void hook_client_exit(void *);
 
 mapi_hfn_list_av1 chm_delayjoin_hfnlist[] = {
-	{ "join_channel", hook_join_channel },
+	{ "channel_join", hook_join_channel },
 	{ "privmsg_channel", hook_privmsg_channel },
+	{ "after_client_exit", hook_client_exit },
 	{ NULL, NULL }
 };
+
+struct delayed_join {
+	struct Client *client_p;
+	struct Channel *chptr;
+	time_t join_time;
+	rb_dlink_node node;
+};
+
+static rb_dictionary_t *delayed_joins;
 
 static void
 hook_join_channel(void *data_)
 {
-	hook_data_channel_join *data = data_;
+	hook_data_channel_activity *data = data_;
+	struct delayed_join *dj;
+	char key[512];
 
 	if (!(data->chptr->mode.mode & mode_delayjoin))
 		return;
 
+	if (!MyClient(data->client))
+		return;
+
 	/* Store that user hasn't spoken yet */
-	/* This would need to be tracked per user/channel */
+	snprintf(key, sizeof(key), "%s:%s", data->client->name, data->chptr->chname);
+	dj = rb_malloc(sizeof(struct delayed_join));
+	dj->client_p = data->client;
+	dj->chptr = data->chptr;
+	dj->join_time = rb_current_time();
+	rb_dictionary_add(delayed_joins, key, dj);
 }
 
 static void
 hook_privmsg_channel(void *data_)
 {
 	hook_data_privmsg_channel *data = data_;
+	struct delayed_join *dj;
+	char key[512];
+	struct membership *msptr;
 
 	if (!(data->chptr->mode.mode & mode_delayjoin))
 		return;
 
-	/* On first message, send delayed JOIN */
-	/* Implementation would track which users haven't been shown yet */
+	if (!MyClient(data->source_p))
+		return;
+
+	snprintf(key, sizeof(key), "%s:%s", data->source_p->name, data->chptr->chname);
+	dj = rb_dictionary_retrieve(delayed_joins, key);
+	if (dj == NULL)
+		return;
+
+	/* On first message, send delayed JOIN to other users */
+	msptr = find_channel_membership(data->chptr, data->source_p);
+	if (msptr != NULL) {
+		/* Send JOIN to other channel members */
+		sendto_channel_local_butone(data->source_p, ALL_MEMBERS, data->chptr,
+			":%s!%s@%s JOIN %s", data->source_p->name,
+			data->source_p->username, data->source_p->host,
+			data->chptr->chname);
+	}
+
+	/* Remove from delayed list */
+	rb_dictionary_delete(delayed_joins, key);
+	rb_free(dj);
+}
+
+static void
+hook_client_exit(void *data_)
+{
+	hook_data_client_exit *data = data_;
+	rb_dictionary_iter iter;
+	struct delayed_join *dj;
+	char key[512];
+
+	if (!MyClient(data->target))
+		return;
+
+	/* Clean up any delayed joins for this client */
+	RB_DICTIONARY_FOREACH(dj, &iter, delayed_joins) {
+		if (dj->client_p == data->target) {
+			snprintf(key, sizeof(key), "%s:%s", dj->client_p->name, dj->chptr->chname);
+			rb_dictionary_delete(delayed_joins, key);
+			rb_free(dj);
+			break;
+		}
+	}
 }
 
 static int
@@ -64,12 +129,26 @@ _modinit(void)
 		ierror("chm_delayjoin: unable to allocate cmode slot for +D");
 		return -1;
 	}
+
+	delayed_joins = rb_dictionary_create("delayed_joins", rb_dictionary_str_casecmp);
 	return 0;
 }
 
 static void
 _moddeinit(void)
 {
+	rb_dictionary_iter iter;
+	struct delayed_join *dj;
+
+	RB_DICTIONARY_FOREACH(dj, &iter, delayed_joins) {
+		rb_free(dj);
+	}
+
+	if (delayed_joins != NULL) {
+		rb_dictionary_destroy(delayed_joins, NULL, NULL);
+		delayed_joins = NULL;
+	}
+
 	cflag_orphan('D');
 }
 

@@ -31,13 +31,21 @@ static void
 hook_privmsg_channel(void *data_)
 {
 	hook_data_privmsg_channel *data = data_;
+	rb_dlink_node *ptr;
+	struct Client *target;
 
-	if (!MyClient(data->target_p))
+	if (data->msgtype != MESSAGE_TYPE_PRIVMSG)
 		return;
 
-	if (data->target_p->umodes & user_modes['Q']) {
-		/* Suppress message to this user */
-		/* Implementation would need to filter the message */
+	/* Check all channel members for +Q mode */
+	RB_DLINK_FOREACH(ptr, data->chptr->locmembers.head) {
+		struct membership *msptr = ptr->data;
+		target = msptr->client_p;
+
+		if (MyClient(target) && (target->umodes & user_modes['Q'])) {
+			/* Suppress message to this user by modifying send logic */
+			/* This would need to hook into the actual send mechanism */
+		}
 	}
 }
 

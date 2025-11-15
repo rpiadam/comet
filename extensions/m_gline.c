@@ -19,6 +19,7 @@
 #include "modules.h"
 #include "numeric.h"
 #include "s_conf.h"
+#include "s_newconf.h"
 #include "hostmask.h"
 
 static const char gline_desc[] = "Provides the GLINE command for global bans";
@@ -41,15 +42,47 @@ mapi_clist_av1 gline_clist[] = { &gline_msgtab, &gungline_msgtab, NULL };
 static void
 m_gline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
+	char user[USERLEN + 2];
+	char host[HOSTLEN + 3];
+	char *reason = "No reason given";
+	struct ConfItem *aconf;
+	int tkline_time = 0;
+	int loc = 1;
+
 	if (parc < 2 || EmptyString(parv[1])) {
 		sendto_one_notice(source_p, ":*** Syntax: GLINE <user@host> [duration] :<reason>");
 		return;
 	}
 
-	/* GLINE implementation would create a global ban */
-	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s issued GLINE: %s",
-		source_p->name, parv[1]);
-	sendto_one_notice(source_p, ":*** GLINE issued for %s", parv[1]);
+	/* Parse user@host */
+	if (strchr(parv[1], '@') == NULL) {
+		sendto_one_notice(source_p, ":*** Invalid format. Use user@host");
+		return;
+	}
+
+	sscanf(parv[1], "%[^@]@%s", user, host);
+
+	/* Check for duration */
+	if (parc > 2) {
+		tkline_time = valid_temp_time(parv[2]);
+		if (tkline_time >= 0)
+			loc = 3;
+	}
+
+	/* Get reason */
+	if (parc > loc && !EmptyString(parv[loc]))
+		reason = (char *)parv[loc];
+
+	/* Create GLINE (similar to KLINE but network-wide) */
+	aconf = make_conf();
+	aconf->status = CONF_KILL;
+	aconf->lifetime = tkline_time;
+	add_conf_by_address(host, NULL, user, NULL, aconf);
+	aconf->passwd = rb_strdup(reason);
+
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s issued GLINE: %s@%s - %s",
+		source_p->name, user, host, reason);
+	sendto_one_notice(source_p, ":*** GLINE issued for %s@%s", user, host);
 }
 
 static void

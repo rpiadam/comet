@@ -21,6 +21,7 @@
 #include "numeric.h"
 #include "match.h"
 #include "chmode.h"
+#include "hash.h"
 
 static const char clearchan_desc[] = "Provides the CLEARCHAN command to clear channel modes/bans";
 
@@ -54,12 +55,32 @@ m_clearchan(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		what = parv[2];
 
 	if (strcasecmp(what, "bans") == 0 || strcasecmp(what, "all") == 0) {
-		/* Clear bans - would need to implement ban clearing */
-		sendto_one_notice(source_p, ":*** Cleared bans on %s", chptr->chname);
+		/* Clear bans */
+		rb_dlink_node *ptr, *next;
+		int cleared = 0;
+
+		RB_DLINK_FOREACH_SAFE(ptr, next, chptr->banlist.head) {
+			struct Ban *ban = ptr->data;
+			rb_dlinkDelete(ptr, &chptr->banlist);
+			free_ban(ban);
+			cleared++;
+		}
+
+		RB_DLINK_FOREACH_SAFE(ptr, next, chptr->quietlist.head) {
+			struct Ban *ban = ptr->data;
+			rb_dlinkDelete(ptr, &chptr->quietlist);
+			free_ban(ban);
+			cleared++;
+		}
+
+		sendto_one_notice(source_p, ":*** Cleared %d bans on %s", cleared, chptr->chname);
 	}
 
 	if (strcasecmp(what, "modes") == 0 || strcasecmp(what, "all") == 0) {
-		/* Clear modes - would need to implement mode clearing */
+		/* Clear non-essential modes */
+		chptr->mode.mode = 0;
+		chptr->mode.limit = 0;
+		chptr->mode.key[0] = '\0';
 		sendto_one_notice(source_p, ":*** Cleared modes on %s", chptr->chname);
 	}
 

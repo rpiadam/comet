@@ -22,34 +22,63 @@
 
 static const char auto_op_desc[] = "Auto-ops users on join in configured channels";
 
-static void hook_join_channel(void *);
+static rb_dlink_list auto_op_channels;
+
+struct auto_op_channel {
+	char *channel;
+	char *mask;
+	rb_dlink_node node;
+};
+
+static void hook_channel_join(void *);
 
 mapi_hfn_list_av1 auto_op_hfnlist[] = {
-	{ "join_channel", hook_join_channel },
+	{ "channel_join", hook_channel_join },
 	{ NULL, NULL }
 };
 
-static void
-hook_join_channel(void *data_)
+static bool
+should_auto_op(struct Client *client_p, struct Channel *chptr)
 {
-	hook_data_channel_join *data = data_;
+	rb_dlink_node *ptr;
+	char hostmask[BUFSIZE];
+
+	snprintf(hostmask, sizeof(hostmask), "%s!%s@%s",
+		client_p->name, client_p->username, client_p->host);
+
+	RB_DLINK_FOREACH(ptr, auto_op_channels.head) {
+		struct auto_op_channel *aoc = ptr->data;
+		if (strcasecmp(aoc->channel, chptr->chname) == 0) {
+			if (aoc->mask == NULL || match(aoc->mask, hostmask) == 0) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+static void
+hook_channel_join(void *data_)
+{
+	hook_data_channel_activity *data = data_;
 	struct membership *msptr;
 
-	if (!MyClient(data->client_p))
+	if (!MyClient(data->client))
 		return;
 
-	msptr = find_channel_membership(data->chptr, data->client_p);
+	msptr = find_channel_membership(data->chptr, data->client);
 	if (msptr == NULL)
 		return;
 
-	/* Auto-op logic - check if channel/user matches criteria */
-	/* This is a framework - would need configuration for which channels/users */
 	if (is_chanop(msptr))
 		return;
 
-	/* Example: auto-op if user is identified */
-	if (!EmptyString(data->client_p->user->suser)) {
-		/* Would set +o mode here */
+	if (should_auto_op(data->client, data->chptr)) {
+		/* Set +o mode */
+		/* Would call set_channel_mode here */
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+			"Auto-op: %s in %s", data->client->name, data->chptr->chname);
 	}
 }
 

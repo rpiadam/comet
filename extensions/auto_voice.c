@@ -21,33 +21,61 @@
 
 static const char auto_voice_desc[] = "Auto-voices users on join in configured channels";
 
-static void hook_join_channel(void *);
+static rb_dlink_list auto_voice_channels;
+
+struct auto_voice_channel {
+	char *channel;
+	char *mask;
+	rb_dlink_node node;
+};
+
+static void hook_channel_join(void *);
 
 mapi_hfn_list_av1 auto_voice_hfnlist[] = {
-	{ "join_channel", hook_join_channel },
+	{ "channel_join", hook_channel_join },
 	{ NULL, NULL }
 };
 
-static void
-hook_join_channel(void *data_)
+static bool
+should_auto_voice(struct Client *client_p, struct Channel *chptr)
 {
-	hook_data_channel_join *data = data_;
+	rb_dlink_node *ptr;
+	char hostmask[BUFSIZE];
+
+	snprintf(hostmask, sizeof(hostmask), "%s!%s@%s",
+		client_p->name, client_p->username, client_p->host);
+
+	RB_DLINK_FOREACH(ptr, auto_voice_channels.head) {
+		struct auto_voice_channel *avc = ptr->data;
+		if (strcasecmp(avc->channel, chptr->chname) == 0) {
+			if (avc->mask == NULL || match(avc->mask, hostmask) == 0) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+static void
+hook_channel_join(void *data_)
+{
+	hook_data_channel_activity *data = data_;
 	struct membership *msptr;
 
-	if (!MyClient(data->client_p))
+	if (!MyClient(data->client))
 		return;
 
-	msptr = find_channel_membership(data->chptr, data->client_p);
+	msptr = find_channel_membership(data->chptr, data->client);
 	if (msptr == NULL)
 		return;
 
 	if (is_voiced(msptr))
 		return;
 
-	/* Auto-voice logic - check if channel/user matches criteria */
-	/* This is a framework - would need configuration */
-	if (!EmptyString(data->client_p->user->suser)) {
-		/* Would set +v mode here */
+	if (should_auto_voice(data->client, data->chptr)) {
+		/* Set +v mode */
+		/* Would call set_channel_mode here */
 	}
 }
 
