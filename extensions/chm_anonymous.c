@@ -38,18 +38,61 @@ mapi_hfn_list_av1 chm_anonymous_hfnlist[] = {
 	{ NULL, NULL }
 };
 
+static void chm_anonymous_mode(struct Client *source_p, struct Channel *chptr,
+		int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
+
 static int
 _modinit(void)
 {
-	mode_anonymous = cflag_add('a', chm_staff);
+	mode_anonymous = cflag_add('a', chm_anonymous_mode);
 	if (mode_anonymous == 0)
 		return -1;
 
-	/* Set the mode type to MODE_ANONYMOUS */
-	/* This is a bit of a hack - we need to ensure the mode type matches */
-	/* The mode will be set when the mode is actually used */
-
 	return 0;
+}
+
+static void
+chm_anonymous_mode(struct Client *source_p, struct Channel *chptr,
+		int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
+{
+	/* Use chm_staff logic but with MODE_ANONYMOUS */
+	if(MyClient(source_p) && !IsOper(source_p))
+	{
+		if(!(*errors & SM_ERR_NOPRIVS))
+			sendto_one_numeric(source_p, ERR_NOPRIVILEGES, form_str(ERR_NOPRIVILEGES));
+		*errors |= SM_ERR_NOPRIVS;
+		return;
+	}
+	if(MyClient(source_p) && !HasPrivilege(source_p, "oper:cmodes"))
+	{
+		if(!(*errors & SM_ERR_NOPRIVS))
+			sendto_one(source_p, form_str(ERR_NOPRIVS), me.name,
+					source_p->name, "cmodes");
+		*errors |= SM_ERR_NOPRIVS;
+		return;
+	}
+
+	/* setting + */
+	if((dir == MODE_ADD) && !(chptr->mode.mode & MODE_ANONYMOUS))
+	{
+		chptr->mode.mode |= MODE_ANONYMOUS;
+
+		mode_changes[mode_count].letter = c;
+		mode_changes[mode_count].dir = MODE_ADD;
+		mode_changes[mode_count].id = NULL;
+		mode_changes[mode_count].mems = ALL_MEMBERS;
+		mode_changes[mode_count++].arg = NULL;
+	}
+	else if((dir == MODE_DEL) && (chptr->mode.mode & MODE_ANONYMOUS))
+	{
+		chptr->mode.mode &= ~MODE_ANONYMOUS;
+
+		mode_changes[mode_count].letter = c;
+		mode_changes[mode_count].dir = MODE_DEL;
+		mode_changes[mode_count].mems = ALL_MEMBERS;
+		mode_changes[mode_count].id = NULL;
+		mode_changes[mode_count++].arg = NULL;
+	}
 }
 
 static void

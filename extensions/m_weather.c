@@ -247,10 +247,32 @@ weather_read_callback(rb_fde_t *F, void *data)
 					req->location, temp_f, temp_c);
 			}
 		} else {
-			/* Fallback if parsing fails */
-			snprintf(response, sizeof(response),
-				":*** Weather for %s: Unable to parse API response",
-				req->location);
+			/* Check for error message in response */
+			char *error_msg = strstr(req->response_buf, "\"message\":\"");
+			if (error_msg != NULL) {
+				char err[128];
+				char *end;
+				error_msg += 11;
+				end = strchr(error_msg, '"');
+				if (end != NULL) {
+					size_t len = end - error_msg;
+					if (len >= sizeof(err))
+						len = sizeof(err) - 1;
+					memcpy(err, error_msg, len);
+					err[len] = '\0';
+					snprintf(response, sizeof(response),
+						":*** Weather for %s: API error - %s",
+						req->location, err);
+				} else {
+					snprintf(response, sizeof(response),
+						":*** Weather for %s: Unable to parse API response",
+						req->location);
+				}
+			} else {
+				snprintf(response, sizeof(response),
+					":*** Weather for %s: Unable to parse API response",
+					req->location);
+			}
 		}
 		
 		if (req->chptr != NULL) {

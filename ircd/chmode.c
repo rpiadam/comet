@@ -92,8 +92,7 @@ construct_cflags_strings(void)
 				chmode_table[i].set_func != chm_key &&
 				chmode_table[i].set_func != chm_limit &&
 				chmode_table[i].set_func != chm_op &&
-				chmode_table[i].set_func != chm_voice &&
-				chmode_table[i].set_func != chm_halfop)
+				chmode_table[i].set_func != chm_voice)
 		{
 			chmode_flags[i] = chmode_table[i].mode_type;
 		}
