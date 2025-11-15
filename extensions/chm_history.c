@@ -25,6 +25,10 @@ static const char chm_history_desc[] = "Adds channel mode +H, which stores and r
 
 static unsigned int mode_history;
 #define MAX_HISTORY_MESSAGES 100
+#define DEFAULT_HISTORY_EXPIRE_TIME 3600  /* 1 hour default expiration */
+
+static time_t history_expire_time = DEFAULT_HISTORY_EXPIRE_TIME;
+static struct ev_entry *history_expire_ev;
 
 struct history_entry {
 	char *nick;
@@ -43,6 +47,7 @@ static rb_dictionary_t *history_dict;
 
 static void hook_privmsg_channel(void *);
 static void hook_channel_join(void *);
+static void expire_history_messages(void *);
 
 mapi_hfn_list_av1 chm_history_hfnlist[] = {
 	{ "privmsg_channel", hook_privmsg_channel },
@@ -91,6 +96,37 @@ add_history_message(struct Channel *chptr, struct Client *source_p, const char *
 		rb_free(old->nick);
 		rb_free(old->text);
 		rb_free(old);
+	}
+}
+
+static void
+expire_history_messages(void *unused)
+{
+	rb_dictionary_iter iter;
+	struct channel_history *hist;
+	time_t now = rb_current_time();
+	time_t expire_time = now - history_expire_time;
+
+	RB_DICTIONARY_FOREACH(hist, &iter, history_dict) {
+		rb_dlink_node *ptr, *next;
+		
+		RB_DLINK_FOREACH_SAFE(ptr, next, hist->messages.head) {
+			struct history_entry *entry = ptr->data;
+			
+			/* Remove expired messages */
+			if (entry->timestamp < expire_time) {
+				rb_dlinkDelete(ptr, &hist->messages);
+				rb_free(entry->nick);
+				rb_free(entry->text);
+				rb_free(entry);
+			}
+		}
+		
+		/* Clean up empty history entries */
+		if (rb_dlink_list_length(&hist->messages) == 0) {
+			rb_dictionary_delete(history_dict, hist->chptr->chname);
+			rb_free(hist);
+		}
 	}
 }
 
@@ -150,6 +186,7 @@ _modinit(void)
 	}
 
 	history_dict = rb_dictionary_create("channel_history", rb_dictionary_str_casecmp);
+	history_expire_ev = rb_event_addish("history_expire", expire_history_messages, NULL, 300);
 	return 0;
 }
 
@@ -159,6 +196,11 @@ _moddeinit(void)
 	rb_dictionary_iter iter;
 	struct channel_history *hist;
 	rb_dlink_node *ptr, *next;
+
+	if (history_expire_ev != NULL) {
+		rb_event_delete(history_expire_ev);
+		history_expire_ev = NULL;
+	}
 
 	RB_DICTIONARY_FOREACH(hist, &iter, history_dict) {
 		RB_DLINK_FOREACH_SAFE(ptr, next, hist->messages.head) {
