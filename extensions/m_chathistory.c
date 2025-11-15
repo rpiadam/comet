@@ -35,8 +35,8 @@ mapi_clist_av1 chathistory_clist[] = { &chathistory_msgtab, NULL };
 DECLARE_MODULE_AV2(m_chathistory, NULL, NULL, chathistory_clist, NULL, NULL, NULL, NULL, chathistory_desc);
 
 /* Note: This requires chm_history extension to be loaded */
-/* The history_dict is internal to chm_history, so we'll need to query it differently */
-/* For now, this is a placeholder that can be enhanced when chm_history exports its API */
+/* Access history through exported function */
+extern rb_dictionary_t *chm_history_dict_get(void);
 
 struct history_entry {
 	char *nick;
@@ -105,9 +105,10 @@ m_chathistory(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 	}
 
 	/* Get history from chm_history extension if available */
+	rb_dictionary_t *history_dict = chm_history_dict_get();
 	if (history_dict == NULL)
 	{
-		sendto_one_notice(source_p, ":*** History not available for this channel");
+		sendto_one_notice(source_p, ":*** History not available (chm_history extension not loaded)");
 		return;
 	}
 

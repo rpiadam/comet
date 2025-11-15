@@ -45,6 +45,12 @@ struct channel_history {
 
 static rb_dictionary_t *history_dict;
 
+/* Export history_dict for use by other modules */
+rb_dictionary_t *chm_history_dict_get(void)
+{
+	return history_dict;
+}
+
 static void hook_privmsg_channel(void *);
 static void hook_channel_join(void *);
 static void expire_history_messages(void *);

@@ -1,0 +1,19 @@
+CHATHISTORY <channel> <query-type> [timestamp] [limit]
+
+CHATHISTORY allows you to query message history for channels
+that have history enabled (mode +H).
+
+Query types:
+  LATEST [limit]     - Get the latest messages (default: 50, max: 100)
+  AROUND <timestamp> [limit] - Get messages around a specific timestamp
+  BEFORE <timestamp> [limit] - Get messages before a timestamp
+  AFTER <timestamp> [limit]  - Get messages after a timestamp
+
+Examples:
+  CHATHISTORY #channel LATEST 20
+  CHATHISTORY #channel AROUND 1234567890 10
+  CHATHISTORY #channel BEFORE 1234567890
+
+Note: This command requires the draft/chathistory capability and
+the channel must have history mode (+H) enabled.
+

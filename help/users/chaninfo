@@ -1,0 +1,14 @@
+CHANINFO <channel>
+
+CHANINFO displays basic information about a channel, including:
+  - Member count and breakdown (ops, halfops, voices, regular)
+  - Channel creation time
+  - Current topic and who set it
+  - Channel modes
+
+You must be a member of the channel to use this command
+(unless you are an IRC operator).
+
+Example:
+  CHANINFO #channel
+
