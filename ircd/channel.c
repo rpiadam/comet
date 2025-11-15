@@ -208,11 +208,12 @@ find_channel_status_viewer(struct membership *msptr, int combine, struct Client 
 	/* Check for anonymous ops mode - hide op status from non-ops */
 	if (is_chanop(msptr) && viewer && MyClient(viewer))
 	{
-		hook_data_channel_approval hdata;
 		struct membership *viewer_msptr = find_channel_membership(chptr, viewer);
 		
 		/* If channel has anonymous mode and viewer is not an oper or op, hide op status */
-		if (chptr->mode.mode & MODE_ANONYMOUS)
+		/* Check for anonymous mode flag (set by chm_anonymous extension) */
+		extern unsigned int chm_anonymous_mode_flag;
+		if (chm_anonymous_mode_flag && (chptr->mode.mode & chm_anonymous_mode_flag))
 		{
 			if (!IsOper(viewer) && (!viewer_msptr || !is_chanop(viewer_msptr)))
 				show_op = false;
@@ -224,6 +225,12 @@ find_channel_status_viewer(struct membership *msptr, int combine, struct Client 
 		if(!combine)
 			return "@";
 		*p++ = '@';
+	}
+	else if(is_halfop(msptr))
+	{
+		if(!combine)
+			return "%";
+		*p++ = '%';
 	}
 
 	if(is_voiced(msptr))

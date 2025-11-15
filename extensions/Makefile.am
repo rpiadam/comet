@@ -102,7 +102,6 @@ extension_LTLIBRARIES =		\
   m_edit.la			\
   m_jupe.la			\
   m_weather.la			\
-  m_football.la			\
   umode_whois.la		\
   umode_deaf.la			\
   chm_large.la			\
@@ -121,7 +120,9 @@ extension_LTLIBRARIES =		\
   m_chathistory.la		\
   m_chanaccess.la		\
   m_search.la			\
-  m_topic_history.la
+  m_topic_history.la		\
+  m_channelstats.la		\
+  m_whoisx.la
 
 if HAVE_HYPERSCAN
     extension_LTLIBRARIES += filter.la

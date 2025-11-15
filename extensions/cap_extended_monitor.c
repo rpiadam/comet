@@ -1,6 +1,6 @@
 /*
  * FoxComet: a modern, highly scalable IRCv3 server
- * cap_batch.c: implement the batch IRCv3 capability
+ * cap_extended_monitor.c: extended-monitor capability
  *
  * Copyright (c) 2024
  *
@@ -17,16 +17,15 @@
 #include "send.h"
 #include "s_serv.h"
 #include "msgbuf.h"
-#include "hash.h"
 
-static const char cap_batch_desc[] = "Provides the batch client capability";
+static const char cap_extended_monitor_desc[] = "Provides the extended-monitor client capability";
 
-unsigned int CLICAP_BATCH = 0;
+unsigned int CLICAP_EXTENDED_MONITOR = 0;
 
-mapi_cap_list_av2 cap_batch_cap_list[] = {
-	{ MAPI_CAP_CLIENT, "batch", NULL, &CLICAP_BATCH },
+mapi_cap_list_av2 cap_extended_monitor_cap_list[] = {
+	{ MAPI_CAP_CLIENT, "extended-monitor", NULL, &CLICAP_EXTENDED_MONITOR },
 	{ 0, NULL, NULL, NULL },
 };
 
-DECLARE_MODULE_AV2(cap_batch, NULL, NULL, NULL, NULL, NULL, cap_batch_cap_list, NULL, cap_batch_desc);
+DECLARE_MODULE_AV2(cap_extended_monitor, NULL, NULL, NULL, NULL, NULL, cap_extended_monitor_cap_list, NULL, cap_extended_monitor_desc);
 

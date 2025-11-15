@@ -26,6 +26,7 @@ static const char chm_anonymous_desc[] =
 	"Adds channel mode +a which hides operator status from non-operators";
 
 static unsigned int mode_anonymous;
+unsigned int chm_anonymous_mode_flag = 0; /* Export for use in channel.c */
 
 static void hook_names_channel(void *);
 static void hook_who_channel(void *);
@@ -38,61 +39,15 @@ mapi_hfn_list_av1 chm_anonymous_hfnlist[] = {
 	{ NULL, NULL }
 };
 
-static void chm_anonymous_mode(struct Client *source_p, struct Channel *chptr,
-		int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-
 static int
 _modinit(void)
 {
-	mode_anonymous = cflag_add('a', chm_anonymous_mode);
+	mode_anonymous = cflag_add('a', chm_staff);
 	if (mode_anonymous == 0)
 		return -1;
 
+	chm_anonymous_mode_flag = mode_anonymous;
 	return 0;
-}
-
-static void
-chm_anonymous_mode(struct Client *source_p, struct Channel *chptr,
-		int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
-{
-	/* Use chm_staff logic but with MODE_ANONYMOUS */
-	if(MyClient(source_p) && !IsOper(source_p))
-	{
-		if(!(*errors & SM_ERR_NOPRIVS))
-			sendto_one_numeric(source_p, ERR_NOPRIVILEGES, form_str(ERR_NOPRIVILEGES));
-		*errors |= SM_ERR_NOPRIVS;
-		return;
-	}
-	if(MyClient(source_p) && !HasPrivilege(source_p, "oper:cmodes"))
-	{
-		if(!(*errors & SM_ERR_NOPRIVS))
-			sendto_one(source_p, form_str(ERR_NOPRIVS), me.name,
-					source_p->name, "cmodes");
-		*errors |= SM_ERR_NOPRIVS;
-		return;
-	}
-
-	/* setting + */
-	if((dir == MODE_ADD) && !(chptr->mode.mode & MODE_ANONYMOUS))
-	{
-		chptr->mode.mode |= MODE_ANONYMOUS;
-
-		mode_changes[mode_count].letter = c;
-		mode_changes[mode_count].dir = MODE_ADD;
-		mode_changes[mode_count].id = NULL;
-		mode_changes[mode_count].mems = ALL_MEMBERS;
-		mode_changes[mode_count++].arg = NULL;
-	}
-	else if((dir == MODE_DEL) && (chptr->mode.mode & MODE_ANONYMOUS))
-	{
-		chptr->mode.mode &= ~MODE_ANONYMOUS;
-
-		mode_changes[mode_count].letter = c;
-		mode_changes[mode_count].dir = MODE_DEL;
-		mode_changes[mode_count].mems = ALL_MEMBERS;
-		mode_changes[mode_count].id = NULL;
-		mode_changes[mode_count++].arg = NULL;
-	}
 }
 
 static void

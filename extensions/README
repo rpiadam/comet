@@ -23,6 +23,14 @@ m_findforwards.c - Find channels that forward (+f) to a given channel.
 m_identify.c - Identifies to NickServ or ChanServ
                Syntax: IDENTIFY [nick|channel] <password>
 
+m_znc.c - ZNC account management commands
+          Syntax: ZNCRegister <username> <password>
+                  ZNCList
+                  ZNCPasswd <username> <newpassword>
+                  ZNCDel <username>
+                  ZNCHelp
+          See ZNC_README.md for details.
+
 m_mkpasswd.c   - MKPASSWD - generate a DES or MD5 encryption of a password
                  Syntax:  MKPASSWD <plaintext> [MD5|DES]
 
@@ -78,3 +86,11 @@ extb_realname.c   - Realname (gecos) bans (+b $r:mask)
 extb_server.c     - Server bans (+b $s:mask)
 extb_ssl.c        - SSL/TLS bans (+b $z:mask)
 extb_usermode.c   - Usermode bans (+b $m:+-modes)
+
+Integration Modules
+-------------------
+
+discord_relay.c - Relays IRC messages to Discord via webhooks
+                   Automatically relays channel messages to Discord.
+                   Configure via DISCORD_WEBHOOK_URL environment variable.
+                   See DISCORD_RELAY_README.md for details.

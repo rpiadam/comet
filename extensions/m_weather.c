@@ -329,7 +329,7 @@ m_weather(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	}
 
 	location = (char *)parv[1];
-	
+
 	req = rb_malloc(sizeof(struct weather_request));
 	req->source_p = source_p;
 	req->location = rb_strdup(location);
@@ -338,7 +338,7 @@ m_weather(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	req->dns_req = 0;
 	req->dns_req_v4 = 0;
 	req->tried_ipv6 = false;
-	
+
 	if (parc > 2 && !EmptyString(parv[2])) {
 		req->chptr = find_channel(parv[2]);
 	} else {
@@ -360,7 +360,7 @@ m_weather(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 			return;
 		}
 	}
-	
+
 	/* Timeout will be set after DNS lookup completes */
 }
 

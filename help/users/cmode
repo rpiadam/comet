@@ -36,6 +36,7 @@ NO PARAMETERS:
               (however, new forwards can still be set subject to +F).
      +C     - Disable CTCP. All CTCP messages to the channel, except ACTION,
               are disallowed.
+  ?  +a     - Anonymous ops.  Hides operator status from non-operators.
   ?  +O     - IRC Operator only channel.
   ?  +A     - IRC server administrator only channel.
   ?  +T     - No NOTICEs allowed in the channel.
@@ -54,6 +55,8 @@ WITH PARAMETERS:
               PARAMS: /mode #channel +l limit
      +v     - Voice.  Allows a user to talk in a +m channel.  Noted by +nick.
               PARAMS: /mode #channel +v nick
+  ?  +h     - Halfop.  Grants partial operator privileges.  Noted by %nick.
+              PARAMS: /mode #channel +h nick
      +o     - Op.  Allows a user full control over the channel.
               PARAMS: /mode #channel +o nick
      +b     - Ban.  Prevents a user from entering the channel, and from
