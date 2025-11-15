@@ -94,7 +94,16 @@ extension_LTLIBRARIES =		\
   auto_voice.la			\
   url_title.la			\
   m_dice.la			\
-  m_quote.la
+  m_quote.la			\
+  chm_history.la		\
+  chm_stickyops.la		\
+  chm_whois.la			\
+  m_delete.la			\
+  m_edit.la			\
+  m_jupe.la			\
+  m_weather.la			\
+  umode_whois.la		\
+  metrics.la
 
 if HAVE_HYPERSCAN
     extension_LTLIBRARIES += filter.la
