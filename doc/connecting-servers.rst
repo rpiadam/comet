@@ -113,6 +113,8 @@ hostname.
 For example, with atheme::
 
    loadmodule "modules/protocol/comet";
+   # Note: The protocol module name may still be "comet" in atheme
+   # depending on the atheme version. Check atheme's documentation.
 
    uplink "a.example.org" {
            host = "localhost";
