@@ -82,9 +82,6 @@ auto_load_mod_LTLIBRARIES = \
   m_whowas.la \
   m_xline.la \
   sno_routing.la \
-  cap_batch.la \
-  cap_labeled_response.la \
-  m_setname.la \
   cap_chathistory.la \
   cap_replay.la
 
