@@ -1,5 +1,5 @@
 /*
- *  ircd-ratbox: A slightly useful ircd.
+ *  FoxComet: A modern, highly scalable IRCv3 server.
  *  defaults.h: The ircd defaults header.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center

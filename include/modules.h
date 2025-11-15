@@ -1,5 +1,5 @@
 /*
- *  ircd-ratbox: A slightly useful ircd.
+ *  FoxComet: A modern, highly scalable IRCv3 server.
  *  modules.h: A header for the modules functions.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
@@ -30,7 +30,7 @@
 #include "parse.h"
 #include "client.h" /* for IDLEN */
 
-#define MAPI_COMET 2
+#define MAPI_FOXCOMET 2
 
 #include <ltdl.h>
 
@@ -97,8 +97,8 @@ struct mapi_mheader_av1
 };
 
 #define MAPI_ORIGIN_UNKNOWN	0		/* Unknown provenance (AV1 etc.) */
-#define MAPI_ORIGIN_EXTENSION	1		/* Comet extension */
-#define MAPI_ORIGIN_CORE	2		/* Comet core module */
+#define MAPI_ORIGIN_EXTENSION	1		/* FoxComet extension */
+#define MAPI_ORIGIN_CORE	2		/* FoxComet core module */
 
 struct mapi_mheader_av2
 {

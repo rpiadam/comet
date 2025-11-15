@@ -1,5 +1,5 @@
 /*
- *  comet
+ *  FoxComet: A modern, highly scalable IRCv3 server.
  *  dns.h: A header with the DNS functions.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
@@ -23,8 +23,8 @@
  *  USA
  */
 
-#ifndef COMET_DNS_H
-#define COMET_DNS_H
+#ifndef FOXCOMET_DNS_H
+#define FOXCOMET_DNS_H
 
 #include "stdinc.h"
 #include "authproc.h"

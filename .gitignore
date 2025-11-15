@@ -14,7 +14,7 @@ Makefile
 .libs
 authd/authd
 bandb/bandb
-bandb/comet-bantool
+bandb/foxcomet-bantool
 autom4te.cache
 aclocal.m4
 compile
@@ -48,7 +48,7 @@ scripts/*.tar.bz2
 scripts/*.tar.gz
 include/setup.h
 include/setup.h.in
-ircd/comet
+ircd/foxcomet
 ircd/ircd_parser.c
 ircd/ircd_parser.h
 ircd/ircd_lexer.c
@@ -56,13 +56,13 @@ ircd/version.c
 ircd/version.c.last
 ssld/ssld
 testsuite/ircd.pid.*
-tools/comet-mkpasswd
-tools/comet-mkfingerprint
+tools/foxcomet-mkpasswd
+tools/foxcomet-mkfingerprint
 tools/genssl
 tools/mkpasswd
 tools/viconf
 include/serno.h
-ircd/comet
+ircd/foxcomet
 ircd/version.c
 ircd/version.c.last
 /libtool

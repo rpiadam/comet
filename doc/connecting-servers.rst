@@ -5,16 +5,16 @@ Servers can be connected together to improve redundancy, distribute bandwidth,
 lower latency, and connect network services.
 
 This document is an introduction to connecting servers. It assumes you are
-already somewhat familiar with Comet's configuration (if not, read
+already somewhat familiar with FoxComet's configuration (if not, read
 :file:`ircd.conf.example`, and set up your own server by editing it
-and running Comet).
+and running FoxComet).
 
-Comet uses the TS6 protocol, and can only be connected with other servers
-using this protocol. We recommend you only connect Comet with other Comet
+FoxComet uses the TS6 protocol, and can only be connected with other servers
+using this protocol. We recommend you only connect FoxComet with other FoxComet
 instances.
 
 Unlike some other IRCd implementations, all connections are reciprocal in
-Comet, which means a single configuration block is used for both incoming
+FoxComet, which means a single configuration block is used for both incoming
 and outgoing connections.
 Additionally, the same ports are used for server and client connections.
 
