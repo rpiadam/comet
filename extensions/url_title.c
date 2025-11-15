@@ -41,6 +41,29 @@ static void hook_privmsg_user(void *);
 static void url_rate_cleanup(void *);
 static bool check_url_rate_limit(struct Client *client_p);
 
+static int
+_modinit(void)
+{
+	url_rate_cleanup_ev = rb_event_addish("url_rate_cleanup", url_rate_cleanup, NULL, 60);
+	return 0;
+}
+
+static void
+_moddeinit(void)
+{
+	rb_dlink_node *ptr, *next;
+	
+	if (url_rate_cleanup_ev != NULL) {
+		rb_event_delete(url_rate_cleanup_ev);
+		url_rate_cleanup_ev = NULL;
+	}
+	
+	RB_DLINK_FOREACH_SAFE(ptr, next, url_rate_limits.head) {
+		rb_dlinkDelete(ptr, &url_rate_limits);
+		rb_free(ptr->data);
+	}
+}
+
 mapi_hfn_list_av1 url_title_hfnlist[] = {
 	{ "privmsg_channel", hook_privmsg_channel },
 	{ "privmsg_user", hook_privmsg_user },
@@ -62,7 +85,9 @@ struct url_request {
 	char response_buf[MAX_RESPONSE_LEN];
 	size_t response_len;
 	uint32_t dns_req;
+	uint32_t dns_req_v4;
 	bool is_https;
+	bool tried_ipv6;
 };
 
 static void url_dns_callback(const char *res, int status, int aftype, void *data);
@@ -83,6 +108,11 @@ url_timeout_callback(rb_fde_t *F, void *data)
 		req->dns_req = 0;
 	}
 	
+	if (req->dns_req_v4 != 0) {
+		cancel_lookup(req->dns_req_v4);
+		req->dns_req_v4 = 0;
+	}
+	
 	if (req->fd != NULL) {
 		rb_settimeout(req->fd, 0, NULL, NULL);
 		rb_close(req->fd);
@@ -100,9 +130,22 @@ url_dns_callback(const char *res, int status, int aftype, void *data)
 	struct sockaddr_in *sin;
 	struct sockaddr_in6 *sin6;
 	
-	req->dns_req = 0;
+	if (aftype == AF_INET6) {
+		req->dns_req = 0;
+		req->tried_ipv6 = true;
+	} else {
+		req->dns_req_v4 = 0;
+	}
 	
 	if (status == 0 || res == NULL) {
+		/* If IPv6 failed, try IPv4 as fallback */
+		if (aftype == AF_INET6) {
+			req->dns_req_v4 = lookup_hostname(req->host, AF_INET, url_dns_callback, req);
+			if (req->dns_req_v4 != 0)
+				return;
+		}
+		
+		/* Both failed or IPv4 failed */
 		rb_free(req);
 		return;
 	}
@@ -134,13 +177,18 @@ url_dns_callback(const char *res, int status, int aftype, void *data)
 	}
 	
 	if (req->is_https) {
-		/* For HTTPS, we'd need SSL support - for now, skip HTTPS URLs */
-		rb_close(req->fd);
-		rb_free(req);
-		return;
+		/* Use SSL connection for HTTPS */
+		if (rb_supports_ssl()) {
+			rb_connect_tcp_ssl(req->fd, (struct sockaddr *)&addr, NULL, url_connect_callback, req, 10);
+		} else {
+			/* SSL not available, skip HTTPS URLs */
+			rb_close(req->fd);
+			rb_free(req);
+			return;
+		}
+	} else {
+		rb_connect_tcp(req->fd, (struct sockaddr *)&addr, NULL, url_connect_callback, req, 10);
 	}
-	
-	rb_connect_tcp(req->fd, (struct sockaddr *)&addr, NULL, url_connect_callback, req, 10);
 }
 
 static void
@@ -421,9 +469,7 @@ hook_privmsg_channel(void *data_)
 	if (!extract_url(data->text, url, sizeof(url)))
 		return;
 	
-	/* Skip HTTPS for now (would need SSL support) */
-	if (strncasecmp(url, "https://", 8) == 0)
-		return;
+	/* HTTPS is now supported if SSL is available */
 	
 	req = rb_malloc(sizeof(struct url_request));
 	req->source_p = data->source_p;
@@ -432,6 +478,8 @@ hook_privmsg_channel(void *data_)
 	req->fd = NULL;
 	req->response_len = 0;
 	req->dns_req = 0;
+	req->dns_req_v4 = 0;
+	req->tried_ipv6 = false;
 	
 	parse_url(url, req->host, sizeof(req->host), req->path, sizeof(req->path), &req->port, &req->is_https);
 	
@@ -440,11 +488,18 @@ hook_privmsg_channel(void *data_)
 		return;
 	}
 	
-	/* Start DNS lookup */
-	req->dns_req = lookup_hostname(req->host, AF_INET, url_dns_callback, req);
+	/* Start DNS lookup - prefer IPv6, fallback to IPv4 */
+	req->tried_ipv6 = false;
+	req->dns_req = lookup_hostname(req->host, AF_INET6, url_dns_callback, req);
+	req->dns_req_v4 = 0;
+	
 	if (req->dns_req == 0) {
-		rb_free(req);
-		return;
+		/* IPv6 lookup failed, try IPv4 immediately */
+		req->dns_req_v4 = lookup_hostname(req->host, AF_INET, url_dns_callback, req);
+		if (req->dns_req_v4 == 0) {
+			rb_free(req);
+			return;
+		}
 	}
 	
 	/* Timeout will be handled by DNS and connection callbacks */
@@ -467,9 +522,7 @@ hook_privmsg_user(void *data_)
 	if (!extract_url(data->text, url, sizeof(url)))
 		return;
 	
-	/* Skip HTTPS for now */
-	if (strncasecmp(url, "https://", 8) == 0)
-		return;
+	/* HTTPS is now supported if SSL is available */
 	
 	req = rb_malloc(sizeof(struct url_request));
 	req->source_p = data->source_p;
@@ -486,14 +539,21 @@ hook_privmsg_user(void *data_)
 		return;
 	}
 	
-	/* Start DNS lookup */
-	req->dns_req = lookup_hostname(req->host, AF_INET, url_dns_callback, req);
+	/* Start DNS lookup - prefer IPv6, fallback to IPv4 */
+	req->tried_ipv6 = false;
+	req->dns_req = lookup_hostname(req->host, AF_INET6, url_dns_callback, req);
+	req->dns_req_v4 = 0;
+	
 	if (req->dns_req == 0) {
-		rb_free(req);
-		return;
+		/* IPv6 lookup failed, try IPv4 immediately */
+		req->dns_req_v4 = lookup_hostname(req->host, AF_INET, url_dns_callback, req);
+		if (req->dns_req_v4 == 0) {
+			rb_free(req);
+			return;
+		}
 	}
 	
 	/* Timeout will be handled by DNS and connection callbacks */
 }
 
-DECLARE_MODULE_AV2(url_title, NULL, NULL, NULL, NULL, url_title_hfnlist, NULL, NULL, url_title_desc);
+DECLARE_MODULE_AV2(url_title, _modinit, _moddeinit, NULL, NULL, url_title_hfnlist, NULL, NULL, url_title_desc);

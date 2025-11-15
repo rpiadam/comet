@@ -46,6 +46,8 @@ struct weather_request {
 	char response_buf[4096];
 	size_t response_len;
 	uint32_t dns_req;
+	uint32_t dns_req_v4;
+	bool tried_ipv6;
 };
 
 static void weather_dns_callback(const char *res, int status, int aftype, void *data);
@@ -61,6 +63,11 @@ weather_timeout_callback(rb_fde_t *F, void *data)
 	if (req->dns_req != 0) {
 		cancel_lookup(req->dns_req);
 		req->dns_req = 0;
+	}
+	
+	if (req->dns_req_v4 != 0) {
+		cancel_lookup(req->dns_req_v4);
+		req->dns_req_v4 = 0;
 	}
 	
 	if (req->fd != NULL) {
@@ -88,9 +95,22 @@ weather_dns_callback(const char *res, int status, int aftype, void *data)
 	struct sockaddr_in *sin;
 	struct sockaddr_in6 *sin6;
 	
-	req->dns_req = 0;
+	if (aftype == AF_INET6) {
+		req->dns_req = 0;
+		req->tried_ipv6 = true;
+	} else {
+		req->dns_req_v4 = 0;
+	}
 	
 	if (status == 0 || res == NULL) {
+		/* If IPv6 failed, try IPv4 as fallback */
+		if (aftype == AF_INET6) {
+			req->dns_req_v4 = lookup_hostname(weather_api_url, AF_INET, weather_dns_callback, req);
+			if (req->dns_req_v4 != 0)
+				return;
+		}
+		
+		/* Both failed or IPv4 failed */
 		sendto_one_notice(req->source_p, ":*** Failed to resolve weather API hostname");
 		rb_free(req->location);
 		rb_free(req);
@@ -316,6 +336,8 @@ m_weather(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	req->fd = NULL;
 	req->response_len = 0;
 	req->dns_req = 0;
+	req->dns_req_v4 = 0;
+	req->tried_ipv6 = false;
 	
 	if (parc > 2 && !EmptyString(parv[2])) {
 		req->chptr = find_channel(parv[2]);
@@ -323,13 +345,20 @@ m_weather(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 		req->chptr = NULL;
 	}
 	
-	/* Start DNS lookup */
-	req->dns_req = lookup_hostname(weather_api_url, AF_INET, weather_dns_callback, req);
+	/* Start DNS lookup - prefer IPv6, fallback to IPv4 */
+	req->tried_ipv6 = false;
+	req->dns_req = lookup_hostname(weather_api_url, AF_INET6, weather_dns_callback, req);
+	req->dns_req_v4 = 0;
+	
 	if (req->dns_req == 0) {
-		sendto_one_notice(source_p, ":*** Failed to start DNS lookup");
-		rb_free(req->location);
-		rb_free(req);
-		return;
+		/* IPv6 lookup failed, try IPv4 immediately */
+		req->dns_req_v4 = lookup_hostname(weather_api_url, AF_INET, weather_dns_callback, req);
+		if (req->dns_req_v4 == 0) {
+			sendto_one_notice(source_p, ":*** Failed to start DNS lookup");
+			rb_free(req->location);
+			rb_free(req);
+			return;
+		}
 	}
 	
 	/* Timeout will be set after DNS lookup completes */
