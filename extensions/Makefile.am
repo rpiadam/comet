@@ -102,6 +102,7 @@ extension_LTLIBRARIES =		\
   m_edit.la			\
   m_jupe.la			\
   m_weather.la			\
+  m_football.la			\
   umode_whois.la		\
   umode_deaf.la			\
   chm_large.la			\
