@@ -84,18 +84,6 @@ extension_LTLIBRARIES =		\
   umode_quiet.la		\
   umode_secureonly.la		\
   umode_sslonly.la		\
-  chm_delayjoin.la		\
-  chm_noknock.la		\
-  chm_nonickchange.la		\
-  chm_nonotice.la		\
-  chm_noinvite.la		\
-  umode_bot.la			\
-  umode_quiet.la		\
-  umode_sslonly.la		\
-  umode_secureonly.la		\
-  m_chaninfo.la			\
-  m_chanlist.la			\
-  m_chansearch.la		\
   m_clearchan.la		\
   m_gline.la			\
   m_sadmin.la			\
