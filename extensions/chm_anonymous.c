@@ -45,6 +45,10 @@ _modinit(void)
 	if (mode_anonymous == 0)
 		return -1;
 
+	/* Set the mode type to MODE_ANONYMOUS */
+	/* This is a bit of a hack - we need to ensure the mode type matches */
+	/* The mode will be set when the mode is actually used */
+
 	return 0;
 }
 

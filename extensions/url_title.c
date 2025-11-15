@@ -350,6 +350,59 @@ extract_url(const char *text, char *url, size_t url_len)
 	return true;
 }
 
+static bool
+check_url_rate_limit(struct Client *client_p)
+{
+	rb_dlink_node *ptr;
+	struct url_rate_limit *limit;
+	time_t now = rb_current_time();
+	
+	if (!MyClient(client_p) || IsOper(client_p))
+		return true;
+	
+	/* Find or create rate limit entry */
+	RB_DLINK_FOREACH(ptr, url_rate_limits.head) {
+		limit = ptr->data;
+		if (limit->client == client_p) {
+			/* Reset window if expired */
+			if (now - limit->window_start > URL_TITLE_RATE_WINDOW) {
+				limit->window_start = now;
+				limit->count = 0;
+			}
+			
+			if (limit->count >= URL_TITLE_RATE_LIMIT) {
+				return false;
+			}
+			
+			limit->count++;
+			return true;
+		}
+	}
+	
+	/* Create new entry */
+	limit = rb_malloc(sizeof(struct url_rate_limit));
+	limit->client = client_p;
+	limit->window_start = now;
+	limit->count = 1;
+	rb_dlinkAdd(limit, &limit->node, &url_rate_limits);
+	return true;
+}
+
+static void
+url_rate_cleanup(void *unused)
+{
+	rb_dlink_node *ptr, *next;
+	time_t now = rb_current_time();
+	
+	RB_DLINK_FOREACH_SAFE(ptr, next, url_rate_limits.head) {
+		struct url_rate_limit *limit = ptr->data;
+		if (now - limit->window_start > URL_TITLE_RATE_WINDOW * 2) {
+			rb_dlinkDelete(ptr, &url_rate_limits);
+			rb_free(limit);
+		}
+	}
+}
+
 static void
 hook_privmsg_channel(void *data_)
 {
@@ -358,6 +411,10 @@ hook_privmsg_channel(void *data_)
 	struct url_request *req;
 	
 	if (data->msgtype != MESSAGE_TYPE_PRIVMSG)
+		return;
+	
+	/* Check rate limit */
+	if (!check_url_rate_limit(data->source_p))
 		return;
 	
 	/* Extract URL from message */
