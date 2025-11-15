@@ -120,6 +120,7 @@ extension_LTLIBRARIES =		\
   m_chathistory.la		\
   m_chanaccess.la		\
   m_search.la			\
+  m_seen.la			\
   ping_monitor.la		\
   rss_feed.la			\
   m_slots.la			\
