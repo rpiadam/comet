@@ -48,6 +48,7 @@ struct fingerprint_account {
 static rb_dictionary_t *fingerprint_dict;
 static bool enabled = true;
 static int collision_threshold = 3; /* Alert if same fingerprint used by N accounts */
+static struct ev_entry *fingerprint_expire_ev;
 
 /* Hook functions */
 static void conn_fingerprint_new_local_user(void *data);
@@ -200,7 +201,7 @@ static int
 modinit(void)
 {
 	fingerprint_dict = rb_dictionary_create("fingerprints", rb_dictionary_str_casecmp);
-	rb_event_addish("fingerprint_expire", fingerprint_expire, NULL, 3600);
+	fingerprint_expire_ev = rb_event_addish("fingerprint_expire", fingerprint_expire, NULL, 3600);
 	return 0;
 }
 
@@ -209,6 +210,9 @@ moddeinit(void)
 {
 	rb_dictionary_iter iter;
 	struct connection_fingerprint *fp;
+
+	if (fingerprint_expire_ev != NULL)
+		rb_event_delete(fingerprint_expire_ev);
 
 	RB_DICTIONARY_FOREACH(fp, &iter, fingerprint_dict) {
 		rb_dlink_node *ptr, *next;
@@ -226,8 +230,6 @@ moddeinit(void)
 		rb_dictionary_destroy(fingerprint_dict, NULL, NULL);
 		fingerprint_dict = NULL;
 	}
-
-	rb_event_delete(fingerprint_expire);
 }
 
 DECLARE_MODULE_AV2(conn_fingerprint, modinit, moddeinit, NULL, NULL, conn_fingerprint_hfnlist, NULL, NULL, conn_fingerprint_desc);

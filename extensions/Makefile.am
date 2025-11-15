@@ -69,7 +69,10 @@ extension_LTLIBRARIES =		\
   invex_regonly.la		\
   umode_hide_idle_time.la	\
   cap_oper.la			\
-  example_module.la
+  example_module.la		\
+  ip_ratelimit.la		\
+  geoip_block.la		\
+  conn_fingerprint.la
 
 if HAVE_HYPERSCAN
     extension_LTLIBRARIES += filter.la

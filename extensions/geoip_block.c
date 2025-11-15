@@ -157,7 +157,12 @@ geoip_block_new_local_user(void *data)
 		return;
 
 	/* Skip if exempt */
-	aconf = find_address_conf_by_client(client_p, client_p->username);
+	aconf = find_address_conf(client_p->host, client_p->sockhost,
+				client_p->username,
+				IsGotId(client_p) ? client_p->username : client_p->username,
+				(struct sockaddr *) &client_p->localClient->ip,
+				GET_SS_FAMILY(&client_p->localClient->ip),
+				client_p->localClient->auth_user);
 	if (aconf != NULL && (aconf->status & CONF_EXEMPTKLINE))
 		return;
 

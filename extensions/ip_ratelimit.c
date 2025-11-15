@@ -52,6 +52,7 @@ static bool enabled = true;
 
 static rb_patricia_tree_t *ip_ratelimit_tree;
 static rb_dlink_list ip_ratelimit_list;
+static struct ev_entry *ip_ratelimit_expire_ev;
 
 /* Hook functions */
 static void ip_ratelimit_new_local_user(void *data);
@@ -247,7 +248,7 @@ static int
 modinit(void)
 {
 	ip_ratelimit_tree = rb_new_patricia(128);
-	rb_event_addish("ip_ratelimit_expire", ip_ratelimit_expire, NULL, 60);
+	ip_ratelimit_expire_ev = rb_event_addish("ip_ratelimit_expire", ip_ratelimit_expire, NULL, 60);
 	return 0;
 }
 
@@ -256,6 +257,9 @@ moddeinit(void)
 {
 	rb_dlink_node *ptr, *next;
 	rb_patricia_node_t *pnode;
+
+	if (ip_ratelimit_expire_ev != NULL)
+		rb_event_delete(ip_ratelimit_expire_ev);
 
 	RB_DLINK_FOREACH_SAFE(ptr, next, ip_ratelimit_list.head) {
 		struct ip_rate_limit *limit = ptr->data;
@@ -272,8 +276,6 @@ moddeinit(void)
 		rb_destroy_patricia(ip_ratelimit_tree, NULL);
 		ip_ratelimit_tree = NULL;
 	}
-
-	rb_event_delete(ip_ratelimit_expire);
 }
 
 DECLARE_MODULE_AV2(ip_ratelimit, modinit, moddeinit, NULL, NULL, ip_ratelimit_hfnlist, NULL, NULL, ip_ratelimit_desc);
