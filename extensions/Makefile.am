@@ -126,7 +126,9 @@ extension_LTLIBRARIES =		\
   m_gamble.la			\
   m_topic_history.la		\
   m_channelstats.la		\
-  m_whoisx.la
+  m_whoisx.la			\
+  metrics_http.la		\
+  webhook.la
 
 if HAVE_HYPERSCAN
     extension_LTLIBRARIES += filter.la

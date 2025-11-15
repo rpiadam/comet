@@ -31,6 +31,7 @@ struct channel_metrics {
 	time_t created;
 	time_t last_activity;
 	rb_dlink_list active_users;
+	struct Channel *chptr;
 };
 
 struct server_metrics {
@@ -41,8 +42,8 @@ struct server_metrics {
 	time_t last_update;
 };
 
-static struct server_metrics metrics;
-static rb_dictionary_t *channel_metrics_dict;
+struct server_metrics metrics;
+rb_dictionary_t *channel_metrics_dict;
 static struct ev_entry *metrics_update_ev;
 
 static void hook_new_local_user(void *);
@@ -139,11 +140,12 @@ get_channel_metrics(struct Channel *chptr)
 	chm = rb_dictionary_retrieve(channel_metrics_dict, chptr->chname);
 	if (chm == NULL)
 	{
-		chm = rb_malloc(sizeof(struct channel_metrics));
-		memset(chm, 0, sizeof(struct channel_metrics));
-		chm->created = rb_current_time();
-		chm->last_activity = rb_current_time();
-		rb_dictionary_add(channel_metrics_dict, chptr->chname, chm);
+	chm = rb_malloc(sizeof(struct channel_metrics));
+	memset(chm, 0, sizeof(struct channel_metrics));
+	chm->chptr = chptr;
+	chm->created = rb_current_time();
+	chm->last_activity = rb_current_time();
+	rb_dictionary_add(channel_metrics_dict, chptr->chname, chm);
 	}
 
 	return chm;

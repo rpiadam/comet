@@ -35,7 +35,9 @@ mapi_clist_av1 search_clist[] = { &search_msgtab, NULL };
 
 DECLARE_MODULE_AV2(m_search, NULL, NULL, search_clist, NULL, NULL, NULL, NULL, search_desc);
 
-/* Forward declaration - would need to access history from chm_history */
+/* Access history from chm_history extension */
+extern rb_dictionary_t *chm_history_dict_get(void);
+
 struct history_entry {
 	char *nick;
 	char *text;
@@ -95,33 +97,64 @@ m_search(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		return;
 	}
 
-	/* Search current channel members for matching nicks */
-	sendto_one_notice(source_p, ":*** Searching %s for: %s", chptr->chname, query);
-
-	RB_DLINK_FOREACH(ptr, chptr->members.head)
-	{
-		if (count >= limit)
-			break;
-
-		msptr = ptr->data;
-		if (match(query, msptr->client_p->name) == 0)
-		{
-			count++;
-			if (is_chanop(msptr))
-				sendto_one_notice(source_p, ":*** @%s!%s@%s", msptr->client_p->name,
-					msptr->client_p->username, msptr->client_p->host);
-			else if (is_halfop(msptr))
-				sendto_one_notice(source_p, ":*** %%%s!%s@%s", msptr->client_p->name,
-					msptr->client_p->username, msptr->client_p->host);
-			else if (is_voiced(msptr))
-				sendto_one_notice(source_p, ":*** +%s!%s@%s", msptr->client_p->name,
-					msptr->client_p->username, msptr->client_p->host);
-			else
-				sendto_one_notice(source_p, ":*** %s!%s@%s", msptr->client_p->name,
-					msptr->client_p->username, msptr->client_p->host);
-		}
+	/* Search message history if available */
+	rb_dictionary_t *history_dict = chm_history_dict_get();
+	struct channel_history *hist = NULL;
+	if (history_dict != NULL) {
+		hist = rb_dictionary_retrieve(history_dict, chptr->chname);
 	}
 
-	sendto_one_notice(source_p, ":*** Search complete (%d matches)", count);
+	if (hist != NULL && rb_dlink_list_length(&hist->messages) > 0) {
+		/* Search message history */
+		struct history_entry *entry;
+		sendto_one_notice(source_p, ":*** Searching message history in %s for: %s", chptr->chname, query);
+
+		RB_DLINK_FOREACH_REVERSE(ptr, hist->messages.tail)
+		{
+			if (count >= limit)
+				break;
+
+			entry = ptr->data;
+			/* Case-insensitive search in message text */
+			if (entry->text != NULL && strcasestr(entry->text, query) != NULL) {
+				count++;
+				char time_str[64];
+				struct tm *tm_info = localtime(&entry->timestamp);
+				strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", tm_info);
+				sendto_one_notice(source_p, ":*** [%s] <%s> %s", time_str, entry->nick, entry->text);
+			}
+		}
+
+		sendto_one_notice(source_p, ":*** Search complete (%d message matches)", count);
+	} else {
+		/* Fallback: Search current channel members for matching nicks */
+		sendto_one_notice(source_p, ":*** Searching members in %s for: %s", chptr->chname, query);
+
+		RB_DLINK_FOREACH(ptr, chptr->members.head)
+		{
+			if (count >= limit)
+				break;
+
+			msptr = ptr->data;
+			if (match(query, msptr->client_p->name) == 0)
+			{
+				count++;
+				if (is_chanop(msptr))
+					sendto_one_notice(source_p, ":*** @%s!%s@%s", msptr->client_p->name,
+						msptr->client_p->username, msptr->client_p->host);
+				else if (is_halfop(msptr))
+					sendto_one_notice(source_p, ":*** %%%s!%s@%s", msptr->client_p->name,
+						msptr->client_p->username, msptr->client_p->host);
+				else if (is_voiced(msptr))
+					sendto_one_notice(source_p, ":*** +%s!%s@%s", msptr->client_p->name,
+						msptr->client_p->username, msptr->client_p->host);
+				else
+					sendto_one_notice(source_p, ":*** %s!%s@%s", msptr->client_p->name,
+						msptr->client_p->username, msptr->client_p->host);
+			}
+		}
+
+		sendto_one_notice(source_p, ":*** Search complete (%d member matches)", count);
+	}
 }
 
