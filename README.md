@@ -1,29 +1,33 @@
-# comet ![Build Status](https://github.com/VibeDevelopers/comet/workflows/CI/badge.svg)
+# FoxComet ![Build Status](https://github.com/VibeDevelopers/comet/workflows/CI/badge.svg)
 
-Comet is an IRCv3 server designed to be highly scalable.  It implements IRCv3.1 and some parts of IRCv3.2.
+FoxComet is a modern, highly scalable IRCv3 server implementation designed for production use. It implements IRCv3.1 and significant portions of IRCv3.2, providing a robust foundation for IRC networks.
 
-It is meant to be used with an IRCv3-capable services implementation such as [Atheme][atheme] or [Anope][anope].
+FoxComet is designed to work seamlessly with IRCv3-capable services implementations such as [Atheme][atheme] or [Anope][anope].
 
    [atheme]: https://atheme.github.io/
    [anope]: http://www.anope.org/
 
-# necessary requirements
+## System Requirements
 
- * A supported platform
- * A working dynamic library system
- * A working lex and yacc - flex and bison should work
+To build and run Comet, you will need:
 
-# platforms
+ * A supported POSIX-compatible operating system (Linux, macOS, FreeBSD, etc.)
+ * A working dynamic library system (shared library support)
+ * A C99-compatible compiler (GCC or Clang recommended)
+ * Build tools: `autoconf`, `automake`, `libtool`, `make`
+ * Parser generators: `flex` (or `lex`) and `bison` (or `yacc`)
+ * SQLite3 development libraries
+ * `pkg-config` for dependency detection
 
-Comet is developed on Linux with glibc, but is currently portable to most POSIX-compatible operating systems.
-However, this portability is likely to be removed unless someone is willing to maintain it.  If you'd like to be that
-person, please let us know on IRC.
+## Supported Platforms
 
-# platform specific errata
+FoxComet is primarily developed and tested on Linux with glibc. While it should compile and run on most POSIX-compatible operating systems, extended platform support may require community maintenance. If you're interested in maintaining support for a specific platform, please contact us.
 
-These are known issues and workarounds for various platforms.
+## Platform-Specific Notes
 
- * **macOS**: you must set the `LIBTOOLIZE` environment variable to point to glibtoolize before running autogen.sh:
+Known issues and platform-specific configuration requirements:
+
+ * **macOS**: You must set the `LIBTOOLIZE` environment variable to point to `glibtoolize` before running `autogen.sh`:
 
    ```bash
    brew install libtool
@@ -31,64 +35,84 @@ These are known issues and workarounds for various platforms.
    ./autogen.sh
    ```
 
- * **FreeBSD**: if you are compiling with ipv6 you may experience
-   problems with ipv4 due to the way the socket code is written.  To
-   fix this you must: `sysctl net.inet6.ip6.v6only=0`
+   On Apple Silicon (M1/M2), use `/opt/homebrew/bin/glibtoolize` instead.
 
- * **Solaris**: you may have to set your `PATH` to include `/usr/gnu/bin` and `/usr/gnu/sbin` before `/usr/bin`
-   and `/usr/sbin`. Solaris's default tools don't seem to play nicely with the configure script. When running
-   as a 32-bit binary, it should be started as:
+ * **FreeBSD**: If you are compiling with IPv6 enabled, you may experience issues with IPv4 due to the socket implementation. To resolve this, set:
+
+   ```bash
+   sysctl net.inet6.ip6.v6only=0
+   ```
+
+ * **Solaris**: You may need to set your `PATH` to include `/usr/gnu/bin` and `/usr/gnu/sbin` before `/usr/bin` and `/usr/sbin`, as Solaris's default tools may not be compatible with the configure script. When running as a 32-bit binary, start it as:
 
    ```bash
    ulimit -n 4095 ; LD_PRELOAD_32=/usr/lib/extendedFILE.so.1 ./comet
    ```
 
-# building
+## Building
+
+### Quick Start
 
 ```bash
-sudo apt install build-essential pkg-config automake libtool libsqlite3-dev # or equivalent
+# Install build dependencies (Debian/Ubuntu)
+sudo apt install build-essential pkg-config automake libtool libsqlite3-dev
+
+# Or on RHEL/CentOS/Fedora
+sudo dnf install gcc make automake libtool sqlite-devel pkg-config
+
+# Build and install
 ./autogen.sh
 ./configure --prefix=/path/to/installation
 make
-make check # run tests
+make check  # Run test suite
 make install
 ```
 
-See `./configure --help` for build options.
+See `./configure --help` for additional build options.
 
-# feature specific requirements
+### Feature-Specific Requirements
 
- * For SSL/TLS client and server connections, one of:
+#### SSL/TLS Support
 
-   * OpenSSL 1.0.0 or newer (`--enable-openssl`)
-   * LibreSSL (`--enable-openssl`)
-   * mbedTLS (`--enable-mbedtls`)
-   * GnuTLS (`--enable-gnutls`)
+FoxComet supports multiple TLS/SSL libraries for client and server connections:
 
- * For certificate-based oper CHALLENGE, OpenSSL 1.0.0 or newer.
-   (Using CHALLENGE is not recommended for new deployments, so if you want to use a different TLS library,
-    feel free.)
+ * **OpenSSL 1.0.0 or newer** (recommended): `--enable-openssl`
+ * **LibreSSL**: `--enable-openssl` (autodetected)
+ * **mbedTLS**: `--enable-mbedtls`
+ * **GnuTLS**: `--enable-gnutls`
 
- * For ECDHE under OpenSSL, on Solaris you will need to compile your own OpenSSL on these systems, as they
-   have removed support for ECC/ECDHE.  Alternatively, consider using another library (see above).
+**Note**: Certificate-based operator CHALLENGE authentication requires OpenSSL 1.0.0 or newer. However, CHALLENGE is not recommended for new deployments, so you may use any of the supported TLS libraries.
 
-# tips
+**Solaris Users**: Solaris distributions have removed ECC/ECDHE support from their OpenSSL builds. You may need to compile your own OpenSSL, or use an alternative TLS library (mbedTLS or GnuTLS).
 
- * To report bugs in Comet, visit us at `#VibeDevelopers` on [VibeTalk](https://www.vibetalk.net)
+## Documentation
 
- * Please read [doc/readme.txt](doc/readme.txt) to get an overview of the current documentation.
+ * For an overview of available documentation, see [doc/readme.txt](doc/readme.txt)
+ * For release notes and recent changes, see [NEWS.md](NEWS.md)
+ * Example configuration files are available in the `doc/` directory
 
- * Read the [NEWS.md](NEWS.md) file for what's new in this release.
+## Important System Configuration
 
- * The files, `/etc/services`, `/etc/protocols`, and `/etc/resolv.conf`, SHOULD be
-   readable by the user running the server in order for ircd to start with
-   the correct settings.  If these files are wrong, Comet will try to use
-   `127.0.0.1` for a resolver as a last-ditch effort.
+The following system files should be readable by the user running the server:
 
-# git access
+ * `/etc/services`
+ * `/etc/protocols`
+ * `/etc/resolv.conf`
 
- * The Comet git repository can be checked out using the following command:
-	`git clone https://github.com/VibeDevelopers/comet.git`
+These files are used during server initialization. If they are not accessible or contain invalid data, FoxComet will attempt to use `127.0.0.1` as a fallback resolver.
 
- * Comet's git repository can be browsed over the Internet at the following address:
-	https://github.com/VibeDevelopers/comet.git
+## Getting Help
+
+ * **Bug Reports**: Open an issue on GitHub
+ * **General Discussion**: Check the repository for discussion channels
+ * **Documentation**: See the `doc/` directory for detailed documentation
+
+## Source Code
+
+The FoxComet source code is hosted on GitHub:
+
+```bash
+git clone https://github.com/rpiadam/foxcomet.git
+```
+
+You can also browse the repository online at: https://github.com/rpiadam/foxcomet

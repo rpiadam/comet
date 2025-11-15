@@ -1,11 +1,11 @@
-Here is the overview of the documents in the doc/ directory.
+Here is an overview of the documents in the doc/ directory.
 
 Subdirectories:
 
 features/               - Documents about features and standards
 technical/              - Technical documents about ircd internals and
                           protocol information
-sgml/                   - SGML documentation
+oper-guide/             - Operator guide documentation
 
 Files:
 
@@ -18,6 +18,6 @@ credits-past.txt        - Credits for the predecessors to Charybdis
 logfiles.txt            - Description of formatting of some logfiles
 server-version-info.txt - Overview of the flags shown in /version
 
-Also in the contrib/ directory you will find:
+Also in the extensions/ directory you will find:
 example_module.c - An example module, detailing what the code in a module
 		   does.  Useful for building your own modules.

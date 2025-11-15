@@ -1,6 +1,9 @@
-This directory contains extensions (modules) to comet ircd that
-have been contributed by other people, or written by our development
+This directory contains extensions (modules) to FoxComet IRCd that
+have been contributed by community members or written by our development
 team.
+
+Extensions can be loaded and unloaded at runtime. See the main documentation
+for information on configuring and using extensions.
 
 
 Modules
@@ -48,38 +51,30 @@ example_module.c - An example module to be used for creating your own.
                    Syntax: TEST
 
 
-Spy Modules
------------
-
-The following are the 'spy' parts, accessible via the +y snomask
-
-spy_admin_notice.c   - Spy on clients doing ADMIN
-spy_info_notice.c    - Spy on clients doing INFO
-spy_links_notice.c   - Spy on clients doing LINKS
-spy_motd_notice.c    - Spy on clients doing MOTD
-spy_stats_notice.c   - Spy on clients doing all STATS
-spy_stats_p_notice.c - Spy on clients doing STATS p only
-spy_trace_notice.c   - Spy on clients doing TRACE
-
-Note: if you have both spy_stats_notice.c and spy_stats_p_notice.c loaded
-you will get two messages.
-
 Snomask Modules
 ---------------
 
-sno_farconnect.c  - Remote client connect/exit notices (snomask +F)
-sno_globalkline.c - Global K/D/X-line activation notices
-sno_globaloper.c  - Global oper-up notices
-sno_whois.c       - Spy on clients who WHOIS you seeing idle time (snomask +W).
+These modules provide additional server notice (snomask) capabilities:
+
+sno_farconnect.c      - Remote client connect/exit notices (snomask +F)
+sno_globaloper.c      - Global oper-up notices
+sno_channelcreate.c   - Channel creation notices
+sno_globalnickchange.c - Global nickname change notices
 
 Extban Modules
 --------------
 
-extb_account.so  - Account bans (+b $a[:mask])
-extb_canjoin.so  - Banned from another channel (+b $j:mask)
-extb_channel.so  - Other-channel bans (+b $c:mask)
-extb_extgecos.so - Extended ban (+b $x:mask)
-extb_guest.so    - Unidentified bans (+b $g:mask)
-extb_oper.so     - Oper bans (+b $o)
-extb_realname.so - Realname (gecos) bans (+b $r:mask)
-extb_server.so   - Server bans (+b $s:mask)
+Extended ban modules allow matching users based on various criteria:
+
+extb_account.c    - Account bans (+b $a[:mask])
+extb_canjoin.c    - Banned from another channel (+b $j:#channel)
+extb_channel.c    - Other-channel bans (+b $c:#channel)
+extb_combi.c      - Combined extban logic
+extb_extgecos.c   - Extended ban (+b $x:nick!user@host#gecos)
+extb_guest.c      - Unidentified bans (+b $g:mask)
+extb_hostmask.c   - Hostmask matching as extban (+b $m:mask)
+extb_oper.c       - Operator bans (+b $o:privset)
+extb_realname.c   - Realname (gecos) bans (+b $r:mask)
+extb_server.c     - Server bans (+b $s:mask)
+extb_ssl.c        - SSL/TLS bans (+b $z:mask)
+extb_usermode.c   - Usermode bans (+b $m:+-modes)

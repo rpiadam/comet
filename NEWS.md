@@ -1,11 +1,11 @@
 # News
 
-This is comet 1.0-dev.
+This is FoxComet 1.0-dev.
 See LICENSE for licensing details (GPL v2).
 
-## comet-1.0-dev
+## FoxComet 1.0-dev
 
-Includes changes from charybdis-4.1.3-dev.
+FoxComet is a fork based on solanum and Charybdis 4.1.3-dev. This release includes all changes from Charybdis 4.1.3-dev plus additional enhancements.
 
 **This release includes breaking changes from charybdis 4.x.** Please pay close attention to
 bolded warnings in the full release notes below.

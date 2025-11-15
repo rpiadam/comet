@@ -1,9 +1,8 @@
-Comet is based on solanum & Charybdis, which was based on ircd-ratbox.
+FoxComet is based on solanum & Charybdis, which was based on ircd-ratbox.
 
-The comet team:
+The FoxComet team:
 
-SnowFields, Craig Saunders <craig@snowfields.me>
-Society, Charlotte Western <society@vibetalk.net>
+rpiadam, Adam Hockley
 
 Development for solanum is led by a group of representatives from Libera Chat
 and OFTC:
@@ -29,5 +28,4 @@ viatsko, Valerii Iatsko <dwr -at- codingbox.io>
 A full list of contributors to Charybdis and its predecessors
 is in doc/credits-past.txt.
 
-Visit the Comet website at: https://www.vibetalk.net/
-Visit us on IRC at: irc.vibetalk.net #VibeDevelopers
+Visit the FoxComet repository at: https://github.com/rpiadam/foxcomet

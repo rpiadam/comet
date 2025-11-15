@@ -37,9 +37,8 @@ loadmodule directive
 
    loadmodule "text";
 
-Loads a module into the IRCd. In charybdis 1.1, most modules are
-automatically loaded in. In future versions, it is intended to remove
-this behaviour as to allow for easy customization of the IRCd's
+Loads a module into the IRCd. In FoxComet, most modules are
+automatically loaded. This allows for easy customization of the IRCd's
 featureset.
 
 serverinfo {} block
@@ -384,7 +383,7 @@ user
     spoofs do not work in operator {} blocks; the real host behind them
     is checked.
 
-    Note that this is different from charybdis 1.x where all kinds of
+    Note that this is different from older versions (pre-2.0) where all kinds of
     spoofs worked in operator {} blocks.
 
 password
@@ -811,7 +810,7 @@ name
 Hostname resolution (DNS)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Charybdis uses solely DNS for all hostname/address lookups (no
+FoxComet uses solely DNS for all hostname/address lookups (no
 ``/etc/hosts`` or anything else). The DNS servers are taken from
 ``/etc/resolv.conf``. If this file does not exist or no valid IP
 addresses are listed in it, the local host (``127.0.0.1``) is used. (Note
@@ -821,5 +820,5 @@ IPv4 as well as IPv6 DNS servers are supported, but it is not possible
 to use both IPv4 and IPv6 in ``/etc/resolv.conf``.
 
 For both security and performance reasons, it is recommended that a
-caching nameserver such as BIND be run on the same machine as Charybdis
+caching nameserver such as BIND be run on the same machine as FoxComet
 and that ``/etc/resolv.conf`` only list ``127.0.0.1``.
