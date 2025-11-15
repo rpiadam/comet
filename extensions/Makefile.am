@@ -74,6 +74,17 @@ extension_LTLIBRARIES =		\
   geoip_block.la		\
   conn_fingerprint.la		\
   chm_delayjoin.la		\
+  chm_noinvite.la		\
+  chm_noknock.la		\
+  chm_nonickchange.la		\
+  m_chaninfo.la			\
+  m_chanlist.la			\
+  m_chansearch.la		\
+  umode_bot.la			\
+  umode_quiet.la		\
+  umode_secureonly.la		\
+  umode_sslonly.la		\
+  chm_delayjoin.la		\
   chm_noknock.la		\
   chm_nonickchange.la		\
   chm_nonotice.la		\
