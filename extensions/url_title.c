@@ -460,6 +460,10 @@ hook_privmsg_user(void *data_)
 	if (data->msgtype != MESSAGE_TYPE_PRIVMSG)
 		return;
 	
+	/* Check rate limit */
+	if (!check_url_rate_limit(data->source_p))
+		return;
+	
 	if (!extract_url(data->text, url, sizeof(url)))
 		return;
 	
