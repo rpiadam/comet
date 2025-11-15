@@ -1,5 +1,5 @@
 /*
- *  Comet: a slightly advanced ircd
+ *  FoxComet: a modern, highly scalable IRCv3 server
  *  shedding.c: Enables/disables user shedding.
  *
  *  Based on oftc-hybrid's m_shedding.c

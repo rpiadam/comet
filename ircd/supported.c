@@ -1,5 +1,5 @@
 /*
- *  Comet: a slightly advanced ircd
+ *  FoxComet: a modern, highly scalable IRCv3 server
  *  supported.c: isupport (005) numeric
  *
  * Copyright (C) 2006 Jilles Tjoelker

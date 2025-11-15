@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * chm_regmsg: require identification to chat (+R mode).
  *
  * Copyright (c) 2020 Eric Mertens <emertens@gmail.com>

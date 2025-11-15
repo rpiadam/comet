@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * ip_cloaking.c: provide user hostname cloaking
  *
  * Written originally by nenolod, altered to use FNV by Elizabeth in 2008

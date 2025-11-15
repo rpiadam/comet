@@ -302,9 +302,9 @@ main(int argc, char *argv[])
 	if(bandb_helper == NULL)
 	{
 		fprintf(stderr,
-			"This is the comet bandb for internal ircd use.\n");
+			"This is the FoxComet bandb for internal ircd use.\n");
 		fprintf(stderr,
-			"You aren't supposed to run me directly (did you want comet-bantool?). Exiting.\n");
+			"You aren't supposed to run me directly (did you want foxcomet-bantool?). Exiting.\n");
 		exit(1);
 	}
 	rsdb_init(db_error_cb);

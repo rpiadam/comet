@@ -1,5 +1,5 @@
 /*
- *  Comet: a slightly advanced ircd
+ *  FoxComet: a modern, highly scalable IRCv3 server
  *  extban.c: extended ban types ($type:data)
  *
  * Copyright (C) 2006 charybdis development team

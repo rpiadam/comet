@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * tgchange.c - code for restricting private messages
  *
  * Copyright (C) 2004-2005 Lee Hardy <lee@leeh.co.uk>

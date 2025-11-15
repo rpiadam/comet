@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * substitution.c: parses substitution-keyword expansions
  *
  * Copyright (c) 2006-2007 Ariadne Conill <ariadne@dereferenced.org>

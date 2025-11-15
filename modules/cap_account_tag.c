@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * cap_account_tag.c: implement the account-tag IRCv3.2 capability
  *
  * Copyright (c) 2016 Ariadne Conill <ariadne@dereferenced.org>

@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * m_ban.c: Propagates network bans across servers.
  *
  *  Copyright (C) 2010 Jilles Tjoelker

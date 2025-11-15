@@ -1,5 +1,5 @@
 /*
- *  Comet: a slightly advanced ircd
+ *  FoxComet: a modern, highly scalable IRCv3 server
  *  sno_routing.c: Shows notices about netjoins and netsplits
  *
  *  Copyright (c) 2005-2006 Jilles Tjoelker <jilles-at-stack.nl>

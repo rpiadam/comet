@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  *
  * Copyright (C) 2012 Keith Buck <mr_flea@esper.net>
  *

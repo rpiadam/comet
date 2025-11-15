@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  *
  * Copyright (C) 2003 Lee H <lee@leeh.co.uk>
  * Copyright (C) 2003-2005 ircd-ratbox development team

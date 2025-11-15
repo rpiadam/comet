@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * markup.h: parses markup into human-readable strings
  *
  * Copyright (c) 2006-2007 Ariadne Conill <ariadne@dereferenced.org>

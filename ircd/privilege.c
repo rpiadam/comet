@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * privilege.c: Dynamic privileges API.
  *
  * Copyright (c) 2021 Ed Kellett <e@kellett.im>

@@ -22,8 +22,8 @@ bolded warnings in the full release notes below.
 - **Breaking:** invite-notify is now enabled by loading the invite-notify extension
 - Prioritise older, more important client capabilities for clients that can only accept
   one line of CAP LS
-- Add the comet.chat/realhost vendor capability (provided by extensions/cap\_realhost)
-- Add the comet.chat/identify-msg vendor capability (provided by extensions/identify\_msg)
+- Add the foxcomet.chat/realhost vendor capability (provided by extensions/cap\_realhost)
+- Add the foxcomet.chat/identify-msg vendor capability (provided by extensions/identify\_msg)
 - Server-side aliases preserve protocol framing characters
 - Add the +G user mode for soft callerid (implicitly allow users with a common channel)
 - /invite no longer punches through callerid

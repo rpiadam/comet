@@ -1,5 +1,5 @@
 /*
- *  Comet: a slightly advanced ircd
+ *  FoxComet: a modern, highly scalable IRCv3 server
  *  certpf.h: Fingerprint method strings
  *
  *  Copyright 2016 Simon Arlott

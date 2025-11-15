@@ -65,10 +65,10 @@ libircd_la_LDFLAGS = $(EXTRA_FLAGS) -avoid-version -no-undefined
 libircd_la_LIBADD = @LIBLTDL@ -L$(top_srcdir)/librb/src -lrb
 libircd_LTLIBRARIES = libircd.la
 
-bin_PROGRAMS = comet
-comet_SOURCES = main.c
-comet_LDFLAGS = $(EXTRA_FLAGS) -dlopen self
-comet_LDADD = libircd.la -L$(top_srcdir)/librb/src -lrb
+bin_PROGRAMS = foxcomet
+foxcomet_SOURCES = main.c
+foxcomet_LDFLAGS = $(EXTRA_FLAGS) -dlopen self
+foxcomet_LDADD = libircd.la -L$(top_srcdir)/librb/src -lrb
 
 install-exec-hook: install-libircdLTLIBRARIES
 	$(RM) -f version.c

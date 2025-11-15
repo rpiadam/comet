@@ -1,4 +1,4 @@
-# FoxComet ![Build Status](https://github.com/VibeDevelopers/comet/workflows/CI/badge.svg)
+# FoxComet ![Build Status](https://github.com/rpiadam/comet/workflows/CI/badge.svg)
 
 FoxComet is a modern, highly scalable IRCv3 server implementation designed for production use. It implements IRCv3.1 and significant portions of IRCv3.2, providing a robust foundation for IRC networks.
 
@@ -9,7 +9,7 @@ FoxComet is designed to work seamlessly with IRCv3-capable services implementati
 
 ## System Requirements
 
-To build and run Comet, you will need:
+To build and run FoxComet, you will need:
 
  * A supported POSIX-compatible operating system (Linux, macOS, FreeBSD, etc.)
  * A working dynamic library system (shared library support)
@@ -46,7 +46,7 @@ Known issues and platform-specific configuration requirements:
  * **Solaris**: You may need to set your `PATH` to include `/usr/gnu/bin` and `/usr/gnu/sbin` before `/usr/bin` and `/usr/sbin`, as Solaris's default tools may not be compatible with the configure script. When running as a 32-bit binary, start it as:
 
    ```bash
-   ulimit -n 4095 ; LD_PRELOAD_32=/usr/lib/extendedFILE.so.1 ./comet
+   ulimit -n 4095 ; LD_PRELOAD_32=/usr/lib/extendedFILE.so.1 ./foxcomet
    ```
 
 ## Building
@@ -112,7 +112,7 @@ These files are used during server initialization. If they are not accessible or
 The FoxComet source code is hosted on GitHub:
 
 ```bash
-git clone https://github.com/rpiadam/foxcomet.git
+git clone https://github.com/rpiadam/comet.git
 ```
 
-You can also browse the repository online at: https://github.com/rpiadam/foxcomet
+You can also browse the repository online at: https://github.com/rpiadam/comet

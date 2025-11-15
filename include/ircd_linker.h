@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * ircd_linker.h: IRCd symbol table linking and maintainance
  *
  * Copyright (c) 2006 Ariadne Conill <ariadne@dereferenced.org>

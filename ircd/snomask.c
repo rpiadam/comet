@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * snomask.c: Management for user server-notice masks.
  *
  * Copyright (c) 2006 Ariadne Conill <ariadne@dereferenced.org>

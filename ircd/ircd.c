@@ -1,5 +1,5 @@
 /*
- *  Comet: a slightly advanced ircd
+ *  FoxComet: a modern, highly scalable IRCv3 server
  *  ircd.c: Starts up and runs the ircd.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center

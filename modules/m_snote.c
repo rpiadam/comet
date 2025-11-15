@@ -1,5 +1,5 @@
 /*
- *  Comet: a slightly advanced ircd
+ *  FoxComet: a modern, highly scalable IRCv3 server
  *  m_snote.c: Server notice listener
  *
  *  Copyright (c) 2006 Ariadne Conill <ariadne@dereferenced.org>

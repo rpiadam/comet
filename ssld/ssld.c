@@ -1,5 +1,5 @@
 /*
- *  ssld.c: The ircd-ratbox ssl/zlib helper daemon thingy
+ *  ssld.c: SSL/TLS and zlib compression helper daemon
  *  Copyright (C) 2007 Aaron Sethman <androsyn@ratbox.org>
  *  Copyright (C) 2007 ircd-ratbox development team
  *

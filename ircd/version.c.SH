@@ -1,7 +1,7 @@
 #!/bin/sh
 
 spitshell=cat
-package=comet
+package=foxcomet
 
 echo "Extracting $package/src/version.c..."
 

@@ -1,5 +1,5 @@
 /*
- * Comet: a slightly advanced ircd
+ * FoxComet: a modern, highly scalable IRCv3 server
  * rb_dictionary.h: Dictionary-based storage.
  *
  * Copyright (c) 2007 Ariadne Conill <ariadne -at- dereferenced.org>
