@@ -76,7 +76,8 @@ hook_channel_join(void *data_)
 
 	if (should_auto_op(data->client, data->chptr)) {
 		/* Set +o mode */
-		/* Would call set_channel_mode here */
+		const char *mode_parv[] = { "+o", data->client->name };
+		set_channel_mode(&me, &me, data->chptr, msptr, 2, mode_parv);
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 			"Auto-op: %s in %s", data->client->name, data->chptr->chname);
 	}

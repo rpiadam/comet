@@ -103,6 +103,8 @@ extension_LTLIBRARIES =		\
   m_jupe.la			\
   m_weather.la			\
   umode_whois.la		\
+  umode_deaf.la			\
+  chm_large.la			\
   metrics.la
 
 if HAVE_HYPERSCAN

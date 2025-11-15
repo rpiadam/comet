@@ -75,7 +75,8 @@ hook_channel_join(void *data_)
 
 	if (should_auto_voice(data->client, data->chptr)) {
 		/* Set +v mode */
-		/* Would call set_channel_mode here */
+		const char *mode_parv[] = { "+v", data->client->name };
+		set_channel_mode(&me, &me, data->chptr, msptr, 2, mode_parv);
 	}
 }
 

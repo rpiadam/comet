@@ -83,7 +83,9 @@ auto_load_mod_LTLIBRARIES = \
   m_xline.la \
   sno_routing.la \
   cap_chathistory.la \
-  cap_replay.la
+  cap_replay.la \
+  cap_read.la \
+  cap_typing.la
 
 module_LTLIBRARIES = \
   core/m_ban.la \
