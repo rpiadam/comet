@@ -1,5 +1,5 @@
 /*
- *  comet: An advanced IRCd.
+ *  FoxComet: A modern, highly scalable IRCv3 server.
  *  ircd_defs.h: A header for ircd global definitions.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
