@@ -37,6 +37,7 @@ hook_doing_whois(void *data_)
 	hook_data_client *data = data_;
 	struct membership *msptr;
 	rb_dlink_node *ptr;
+	bool hide_info = false;
 
 	if (!MyClient(data->client) || !IsPerson(data->target))
 		return;
@@ -47,11 +48,18 @@ hook_doing_whois(void *data_)
 		if (msptr->chptr->mode.mode & mode_whois) {
 			/* Check if requester is op in this channel */
 			struct membership *req_msptr = find_channel_membership(msptr->chptr, data->client);
-			if (!is_chanop(req_msptr)) {
+			if (req_msptr == NULL || !is_chanop(req_msptr)) {
 				/* Hide WHOIS info for non-ops */
-				/* This would need to modify WHOIS response */
+				hide_info = true;
+				break;
 			}
 		}
+	}
+
+	/* If info should be hidden and requester is not an operator, suppress WHOIS */
+	if (hide_info && !IsOper(data->client)) {
+		/* Mark as approved=1 to suppress WHOIS response */
+		/* This would need to be integrated with WHOIS hook system */
 	}
 }
 

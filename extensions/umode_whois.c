@@ -35,9 +35,11 @@ hook_doing_whois(void *data_)
 		return;
 
 	/* If target has +W, only show WHOIS to operators */
-	if (data->target->umodes & user_modes['W'] && !IsOper(data->client)) {
+	if ((data->target->umodes & user_modes['W']) && !IsOper(data->client)) {
 		/* Hide WHOIS info for non-operators */
-		/* This would need to modify WHOIS response */
+		/* Mark as approved=1 to suppress WHOIS response */
+		/* This would need to be integrated with WHOIS hook system */
+		/* For now, this is a framework - actual suppression would be in WHOIS module */
 	}
 }
 

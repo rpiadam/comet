@@ -20,10 +20,20 @@
 #include "modules.h"
 #include "numeric.h"
 #include "match.h"
+#include "hook.h"
+#include "hash.h"
 
 static const char edit_desc[] = "Provides message editing functionality";
 
 static void m_edit(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
+static void hook_privmsg_channel(void *);
+static void hook_privmsg_user(void *);
+
+mapi_hfn_list_av1 edit_hfnlist[] = {
+	{ "privmsg_channel", hook_privmsg_channel },
+	{ "privmsg_user", hook_privmsg_user },
+	{ NULL, NULL }
+};
 
 struct Message edit_msgtab = {
 	"EDIT", 0, 0, 0, 0,
@@ -32,20 +42,81 @@ struct Message edit_msgtab = {
 
 mapi_clist_av1 edit_clist[] = { &edit_msgtab, NULL };
 
-struct edited_message {
+struct tracked_message {
 	char *msgid;
-	char *original;
-	char *edited;
-	time_t edit_time;
+	struct Client *source_p;
+	struct Channel *chptr;
+	struct Client *target_p;
+	char *text;
+	time_t sent_time;
 	rb_dlink_node node;
 };
 
 static rb_dictionary_t *edited_messages;
+static rb_dictionary_t *tracked_messages;
+static unsigned int msgid_counter = 0;
+
+static char *
+generate_msgid(struct Client *source_p)
+{
+	char msgid[64];
+	snprintf(msgid, sizeof(msgid), "%s-%u-%lu", 
+		source_p->id, msgid_counter++, (unsigned long)rb_current_time());
+	return rb_strdup(msgid);
+}
+
+static void
+hook_privmsg_channel(void *data_)
+{
+	hook_data_privmsg_channel *data = data_;
+	struct tracked_message *msg;
+	char *msgid;
+
+	if (data->msgtype != MESSAGE_TYPE_PRIVMSG)
+		return;
+
+	/* Track message for editing/deletion */
+	msg = rb_malloc(sizeof(struct tracked_message));
+	msgid = generate_msgid(data->source_p);
+	msg->msgid = msgid;
+	msg->source_p = data->source_p;
+	msg->chptr = data->chptr;
+	msg->target_p = NULL;
+	msg->text = rb_strdup(data->text);
+	msg->sent_time = rb_current_time();
+
+	rb_dictionary_add(tracked_messages, msgid, msg);
+	rb_dictionary_add(edited_messages, msgid, msg);
+}
+
+static void
+hook_privmsg_user(void *data_)
+{
+	hook_data_privmsg_user *data = data_;
+	struct tracked_message *msg;
+	char *msgid;
+
+	if (data->msgtype != MESSAGE_TYPE_PRIVMSG)
+		return;
+
+	/* Track message for editing/deletion */
+	msg = rb_malloc(sizeof(struct tracked_message));
+	msgid = generate_msgid(data->source_p);
+	msg->msgid = msgid;
+	msg->source_p = data->source_p;
+	msg->chptr = NULL;
+	msg->target_p = data->target_p;
+	msg->text = rb_strdup(data->text);
+	msg->sent_time = rb_current_time();
+
+	rb_dictionary_add(tracked_messages, msgid, msg);
+	rb_dictionary_add(edited_messages, msgid, msg);
+}
 
 static void
 m_edit(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	struct edited_message *edit;
+	struct tracked_message *msg;
 	const char *msgid;
 	const char *newtext;
 
@@ -58,19 +129,34 @@ m_edit(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	newtext = parv[2];
 
 	/* Find original message */
-	edit = rb_dictionary_retrieve(edited_messages, msgid);
-	if (edit == NULL) {
+	msg = rb_dictionary_retrieve(edited_messages, msgid);
+	if (msg == NULL) {
 		sendto_one_notice(source_p, ":*** Message not found or cannot be edited");
 		return;
 	}
 
-	/* Update message */
-	rb_free(edit->edited);
-	edit->edited = rb_strdup(newtext);
-	edit->edit_time = rb_current_time();
+	/* Check ownership */
+	if (msg->source_p != source_p) {
+		sendto_one_notice(source_p, ":*** You can only edit your own messages");
+		return;
+	}
 
-	/* Send edit notification to channel/users */
-	/* Implementation would send edited message to recipients */
+	/* Update message */
+	rb_free(msg->text);
+	msg->text = rb_strdup(newtext);
+
+	/* Send edit notification */
+	if (msg->chptr != NULL) {
+		/* Channel message - notify channel */
+		sendto_channel_local(ALL_MEMBERS, msg->chptr,
+			":%s NOTICE %s :Message %s edited by %s",
+			me.name, msg->chptr->chname, msgid, source_p->name);
+	} else if (msg->target_p != NULL) {
+		/* Private message - notify recipient */
+		sendto_one_notice(msg->target_p, ":*** Message %s from %s was edited",
+			msgid, source_p->name);
+	}
+
 	sendto_one_notice(source_p, ":*** Message edited");
 }
 
@@ -78,6 +164,7 @@ static int
 modinit(void)
 {
 	edited_messages = rb_dictionary_create("edited_messages", rb_dictionary_str_casecmp);
+	tracked_messages = rb_dictionary_create("tracked_messages", rb_dictionary_str_casecmp);
 	return 0;
 }
 
@@ -85,20 +172,24 @@ static void
 moddeinit(void)
 {
 	rb_dictionary_iter iter;
-	struct edited_message *edit;
+	struct tracked_message *msg;
 
-	RB_DICTIONARY_FOREACH(edit, &iter, edited_messages) {
-		rb_free(edit->msgid);
-		rb_free(edit->original);
-		rb_free(edit->edited);
-		rb_free(edit);
+	RB_DICTIONARY_FOREACH(msg, &iter, edited_messages) {
+		rb_free(msg->msgid);
+		rb_free(msg->text);
+		rb_free(msg);
 	}
 
 	if (edited_messages != NULL) {
 		rb_dictionary_destroy(edited_messages, NULL, NULL);
 		edited_messages = NULL;
 	}
+
+	if (tracked_messages != NULL) {
+		rb_dictionary_destroy(tracked_messages, NULL, NULL);
+		tracked_messages = NULL;
+	}
 }
 
-DECLARE_MODULE_AV2(edit, modinit, moddeinit, edit_clist, NULL, NULL, NULL, NULL, edit_desc);
+DECLARE_MODULE_AV2(edit, modinit, moddeinit, edit_clist, NULL, edit_hfnlist, NULL, NULL, edit_desc);
 

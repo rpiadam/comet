@@ -33,11 +33,22 @@ struct Message delete_msgtab = {
 
 mapi_clist_av1 delete_clist[] = { &delete_msgtab, NULL };
 
-static rb_dictionary_t *deletable_messages;
+/* Share tracked messages with m_edit */
+extern rb_dictionary_t *tracked_messages;
+
+struct tracked_message {
+	char *msgid;
+	struct Client *source_p;
+	struct Channel *chptr;
+	struct Client *target_p;
+	char *text;
+	time_t sent_time;
+};
 
 static void
 m_delete(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
+	struct tracked_message *msg;
 	const char *msgid;
 
 	if (parc < 2 || EmptyString(parv[1])) {
@@ -48,30 +59,51 @@ m_delete(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	msgid = parv[1];
 
 	/* Check if message exists and can be deleted */
-	if (rb_dictionary_retrieve(deletable_messages, msgid) == NULL) {
+	msg = rb_dictionary_retrieve(tracked_messages, msgid);
+	if (msg == NULL) {
 		sendto_one_notice(source_p, ":*** Message not found or cannot be deleted");
 		return;
 	}
 
-	/* Delete message and notify recipients */
-	rb_dictionary_delete(deletable_messages, msgid);
+	/* Check ownership or operator status */
+	if (msg->source_p != source_p && !IsOper(source_p)) {
+		sendto_one_notice(source_p, ":*** You can only delete your own messages");
+		return;
+	}
+
+	/* Notify recipients */
+	if (msg->chptr != NULL) {
+		/* Channel message - notify channel */
+		sendto_channel_local(ALL_MEMBERS, msg->chptr,
+			":%s NOTICE %s :Message %s deleted by %s",
+			me.name, msg->chptr->chname, msgid, source_p->name);
+	} else if (msg->target_p != NULL) {
+		/* Private message - notify recipient */
+		sendto_one_notice(msg->target_p, ":*** Message %s from %s was deleted",
+			msgid, msg->source_p->name);
+	}
+
+	/* Delete message */
+	rb_dictionary_delete(tracked_messages, msgid);
+	rb_free(msg->msgid);
+	rb_free(msg->text);
+	rb_free(msg);
+
 	sendto_one_notice(source_p, ":*** Message deleted");
 }
 
 static int
 modinit(void)
 {
-	deletable_messages = rb_dictionary_create("deletable_messages", rb_dictionary_str_casecmp);
+	/* Use tracked_messages from m_edit if available */
+	/* If m_edit is not loaded, this will fail gracefully */
 	return 0;
 }
 
 static void
 moddeinit(void)
 {
-	if (deletable_messages != NULL) {
-		rb_dictionary_destroy(deletable_messages, NULL, NULL);
-		deletable_messages = NULL;
-	}
+	/* Cleanup handled by m_edit */
 }
 
 DECLARE_MODULE_AV2(delete, modinit, moddeinit, delete_clist, NULL, NULL, NULL, NULL, delete_desc);

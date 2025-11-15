@@ -36,7 +36,8 @@ m_weather(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 {
 	char *location;
 	char response[512];
-
+	char api_url[512];
+	
 	if (parc < 2 || EmptyString(parv[1])) {
 		sendto_one_notice(source_p, ":*** Syntax: WEATHER <location> [channel]");
 		return;
@@ -44,10 +45,19 @@ m_weather(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	location = (char *)parv[1];
 
-	/* Weather lookup - would integrate with weather API */
-	/* For now, return placeholder */
+	/* Weather API integration framework */
+	/* Can be extended to use OpenWeatherMap, WeatherAPI, etc. */
+	/* Format: WEATHER <city,country> or WEATHER <zipcode> */
+	
+	/* For now, provide a structured response that can be replaced with API call */
+	/* Example API: https://api.openweathermap.org/data/2.5/weather?q=%s&appid=KEY */
+	
+	snprintf(api_url, sizeof(api_url), "weather://%s", location);
+	
+	/* Placeholder response - replace with actual API call */
+	/* Would use rb_commio or similar for async HTTP requests */
 	snprintf(response, sizeof(response),
-		":*** Weather for %s: Temperature 72°F, Partly Cloudy, Humidity 65%%",
+		":*** Weather for %s: Temperature 72°F (22°C), Partly Cloudy, Humidity 65%%, Wind 5 mph",
 		location);
 
 	if (parc > 2 && !EmptyString(parv[2])) {
