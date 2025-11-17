@@ -25,8 +25,8 @@ jobs:
             texinfo \
             # EOF
       - uses: actions/checkout
-         with:
-           persist-credentials: false
-           submodules: recursive
-       - name: Build Oper Guide
+        with:
+          persist-credentials: false
+          submodules: recursive
+      - name: Build Oper Guide
         run: make -C doc/oper-guide html man info
