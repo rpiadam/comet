@@ -41,7 +41,8 @@ hook_invite_channel(void *data_)
 		return;
 
 	sendto_one_numeric(data->client, ERR_CANNOTSENDTOCHAN, form_str(ERR_CANNOTSENDTOCHAN),
-		data->chptr->chname, "INVITE is disabled on this channel (+V)");
+		data->chptr->chname);
+	sendto_one_notice(data->client, ":*** INVITE is disabled on this channel (+V)");
 	data->approved = ERR_CANNOTSENDTOCHAN;
 }
 
