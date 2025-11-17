@@ -45,7 +45,7 @@ struct fingerprint_account {
 	rb_dlink_node node;
 };
 
-static rb_dictionary_t *fingerprint_dict;
+static rb_dictionary *fingerprint_dict;
 static bool enabled = true;
 static int collision_threshold = 3; /* Alert if same fingerprint used by N accounts */
 static struct ev_entry *fingerprint_expire_ev;
