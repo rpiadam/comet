@@ -82,6 +82,8 @@ jobs:
       run: bash autogen.sh
     - name: configure
       run: ./configure --enable-assert=hard --enable-warnings
+    - name: make clean
+      run: make clean || true
     - name: make
       run: make -j2
     - name: make check
