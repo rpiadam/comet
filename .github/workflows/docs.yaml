@@ -18,16 +18,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout
+        with:
+          persist-credentials: false
+          submodules: recursive
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             python3-sphinx \
             texinfo \
+            automake \
+            autoconf \
+            libtool \
             # EOF
-      - uses: actions/checkout
-        with:
-          persist-credentials: false
-          submodules: recursive
+      - name: autogen.sh
+        run: bash autogen.sh
+      - name: configure
+        run: ./configure
       - name: Build Oper Guide
         run: make -C doc/oper-guide html man info
