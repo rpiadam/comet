@@ -26,7 +26,8 @@ static const char cap_read_desc[] = "Provides the draft/read client capability f
 unsigned int CLICAP_READ = 0;
 
 static void m_read(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
-static void hook_outbound_msgbuf_read(void *);
+static void hook_privmsg_channel_read(void *);
+static void hook_privmsg_user_read(void *);
 
 struct Message read_msgtab = {
 	"READ", 0, 0, 0, 0,
@@ -36,7 +37,8 @@ struct Message read_msgtab = {
 mapi_clist_av1 read_clist[] = { &read_msgtab, NULL };
 
 mapi_hfn_list_av1 read_hfnlist[] = {
-	{ "outbound_msgbuf", hook_outbound_msgbuf_read },
+	{ "privmsg_channel", hook_privmsg_channel_read },
+	{ "privmsg_user", hook_privmsg_user_read },
 	{ NULL, NULL }
 };
 
@@ -94,19 +96,17 @@ m_read(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 /* Add msgid tag to PRIVMSG/NOTICE for read receipts */
 static void
-hook_outbound_msgbuf_read(void *data_)
+hook_privmsg_channel_read(void *data_)
 {
-	hook_data *data = data_;
-	struct MsgBuf *msgbuf = data->arg1;
-	struct Client *client_p = data->client;
+	hook_data_privmsg_channel *data = data_;
+	struct MsgBuf *msgbuf = data->msgbuf;
 	size_t i;
 	bool has_msgid = false;
-	const char *command = NULL;
 
-	if (client_p == NULL || !IsCapable(client_p, CLICAP_READ))
+	if (!IsCapable(data->source_p, CLICAP_READ) || msgbuf == NULL)
 		return;
 
-	/* Find the command name in the msgbuf to check if it's PRIVMSG or NOTICE */
+	/* Generate msgid if not present */
 	for (i = 0; i < msgbuf->n_tags; i++)
 	{
 		if (msgbuf->tags[i].key && !strcmp(msgbuf->tags[i].key, "msgid"))
@@ -115,22 +115,43 @@ hook_outbound_msgbuf_read(void *data_)
 			break;
 		}
 	}
-
-	/* Only add msgid to PRIVMSG and NOTICE messages */
-	/* Check if this is a PRIVMSG or NOTICE by examining the command */
-	/* For now, we'll add msgid to all messages with the read capability */
-	/* The actual filtering should be done by checking the command in the msgbuf */
-	if (!has_msgid && msgbuf->command)
+	if (!has_msgid)
 	{
-		command = msgbuf->command;
-		if (command && (!strcmp(command, "PRIVMSG") || !strcmp(command, "NOTICE")))
+		static unsigned int msgid_counter = 0;
+		char msgid[64];
+		snprintf(msgid, sizeof(msgid), "%s-%u-%lu",
+			data->source_p->id, msgid_counter++, (unsigned long)rb_current_time());
+		msgbuf_append_tag(msgbuf, "msgid", msgid, CLICAP_READ);
+	}
+}
+
+static void
+hook_privmsg_user_read(void *data_)
+{
+	hook_data_privmsg_user *data = data_;
+	struct MsgBuf *msgbuf = data->msgbuf;
+	size_t i;
+	bool has_msgid = false;
+
+	if (!IsCapable(data->source_p, CLICAP_READ) || msgbuf == NULL)
+		return;
+
+	/* Generate msgid if not present */
+	for (i = 0; i < msgbuf->n_tags; i++)
+	{
+		if (msgbuf->tags[i].key && !strcmp(msgbuf->tags[i].key, "msgid"))
 		{
-			static unsigned int msgid_counter = 0;
-			char msgid[64];
-			snprintf(msgid, sizeof(msgid), "%s-%u-%lu",
-				client_p->id, msgid_counter++, (unsigned long)rb_current_time());
-			msgbuf_append_tag(msgbuf, "msgid", msgid, CLICAP_READ);
+			has_msgid = true;
+			break;
 		}
+	}
+	if (!has_msgid)
+	{
+		static unsigned int msgid_counter = 0;
+		char msgid[64];
+		snprintf(msgid, sizeof(msgid), "%s-%u-%lu",
+			data->source_p->id, msgid_counter++, (unsigned long)rb_current_time());
+		msgbuf_append_tag(msgbuf, "msgid", msgid, CLICAP_READ);
 	}
 }
 

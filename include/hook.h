@@ -179,12 +179,15 @@ enum message_type {
 	MESSAGE_TYPE_COUNT
 };
 
+struct MsgBuf;
+
 typedef struct
 {
 	enum message_type msgtype;
 	struct Client *source_p;
 	struct Channel *chptr;
 	const char *text;
+	struct MsgBuf *msgbuf;
 	int approved;
 } hook_data_privmsg_channel;
 
@@ -194,6 +197,7 @@ typedef struct
 	struct Client *source_p;
 	struct Client *target_p;
 	const char *text;
+	struct MsgBuf *msgbuf;
 	int approved;
 } hook_data_privmsg_user;
 

@@ -123,7 +123,8 @@ static bool duplicate_ptr(void *);
 
 static void msg_channel(enum message_type msgtype,
 			struct Client *client_p,
-			struct Client *source_p, struct Channel *chptr, const char *text);
+			struct Client *source_p, struct Channel *chptr, const char *text,
+			struct MsgBuf *msgbuf_p);
 
 static void msg_channel_opmod(enum message_type msgtype,
 			      struct Client *client_p,
@@ -136,7 +137,8 @@ static void msg_channel_flags(enum message_type msgtype,
 			      struct Channel *chptr, int flags, const char *text);
 
 static void msg_client(enum message_type msgtype,
-		       struct Client *source_p, struct Client *target_p, const char *text);
+		       struct Client *source_p, struct Client *target_p, const char *text,
+		       struct MsgBuf *msgbuf_p);
 
 static void handle_special(enum message_type msgtype,
 			   struct Client *client_p, struct Client *source_p, const char *nick,
@@ -221,7 +223,7 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 		{
 		case ENTITY_CHANNEL:
 			msg_channel(msgtype, client_p, source_p,
-				    (struct Channel *) targets[i].ptr, parv[2]);
+				    (struct Channel *) targets[i].ptr, parv[2], msgbuf_p);
 			break;
 
 		case ENTITY_CHANNEL_OPMOD:
@@ -237,7 +239,7 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 
 		case ENTITY_CLIENT:
 			msg_client(msgtype, source_p,
-				   (struct Client *) targets[i].ptr, parv[2]);
+				   (struct Client *) targets[i].ptr, parv[2], msgbuf_p);
 			break;
 		}
 	}
@@ -507,7 +509,7 @@ duplicate_ptr(void *ptr)
 static void
 msg_channel(enum message_type msgtype,
 	    struct Client *client_p, struct Client *source_p, struct Channel *chptr,
-	    const char *text)
+	    const char *text, struct MsgBuf *msgbuf_p)
 {
 	int result;
 	hook_data_privmsg_channel hdata;
@@ -523,6 +525,7 @@ msg_channel(enum message_type msgtype,
 	hdata.source_p = source_p;
 	hdata.chptr = chptr;
 	hdata.text = text;
+	hdata.msgbuf = msgbuf_p;
 	hdata.approved = 0;
 
 	call_hook(h_privmsg_channel, &hdata);
@@ -772,7 +775,8 @@ echo_msg(struct Client *source_p, struct Client *target_p,
  */
 static void
 msg_client(enum message_type msgtype,
-	   struct Client *source_p, struct Client *target_p, const char *text)
+	   struct Client *source_p, struct Client *target_p, const char *text,
+	   struct MsgBuf *msgbuf_p)
 {
 	int do_floodcount = 0;
 	hook_data_privmsg_user hdata;
@@ -826,6 +830,7 @@ msg_client(enum message_type msgtype,
 	hdata.source_p = source_p;
 	hdata.target_p = target_p;
 	hdata.text = text;
+	hdata.msgbuf = msgbuf_p;
 	hdata.approved = 0;
 
 	call_hook(h_privmsg_user, &hdata);
