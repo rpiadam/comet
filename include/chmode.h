@@ -26,6 +26,8 @@
 #ifndef INCLUDED_chmode_h
 #define INCLUDED_chmode_h
 
+#include "channel.h"
+
 /* something not included in messages.tab
  * to change some hooks behaviour when needed
  * -- dwr
