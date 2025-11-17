@@ -23,6 +23,14 @@
 #include "s_user.h"
 #include "numeric.h"
 #include "s_serv.h"
+#include "rb_dictionary.h"
+
+/* Compatibility function - rb_dictionary_str_casecmp is an alias for rb_strcasecmp */
+static int
+rb_dictionary_str_casecmp(const void *a, const void *b)
+{
+	return rb_strcasecmp(a, b);
+}
 
 static const char conn_fingerprint_desc[] = "Connection fingerprinting for security and ban evasion detection";
 
@@ -146,8 +154,8 @@ check_collisions(struct connection_fingerprint *fp, struct Client *client_p)
 		}
 
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-			"Fingerprint collision detected: %s accounts share fingerprint %s: %s",
-			rb_dlink_list_length(&fp->accounts) + 1, fp->fingerprint, accounts_list);
+			"Fingerprint collision detected: %lu accounts share fingerprint %s: %s",
+			(unsigned long)(rb_dlink_list_length(&fp->accounts) + 1), fp->fingerprint, accounts_list);
 	}
 }
 

@@ -19,6 +19,7 @@
 #include "channel.h"
 #include "chmode.h"
 #include "numeric.h"
+#include "logger.h"
 
 static const char chm_nonotice_desc[] = "Adds channel mode +T, which disallows channel notices";
 
@@ -48,7 +49,8 @@ hook_notice_channel(void *data_)
 		return;
 
 	sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOCHAN, form_str(ERR_CANNOTSENDTOCHAN),
-		data->chptr->chname, "NOTICE is disabled on this channel (+T)");
+		data->chptr->chname);
+	sendto_one_notice(data->source_p, ":*** NOTICE is disabled on this channel (+T)");
 	data->approved = ERR_CANNOTSENDTOCHAN;
 }
 

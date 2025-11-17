@@ -22,6 +22,7 @@
 #include "s_user.h"
 #include "numeric.h"
 #include "reject.h"
+#include "s_conf.h"
 
 static const char geoip_block_desc[] = "Block connections based on geographic location";
 
@@ -79,7 +80,6 @@ static const char *
 get_country_code(struct sockaddr *addr)
 {
 	char ip_str[INET6_ADDRSTRLEN];
-	static char country_code[3] = {0};
 	
 	if (addr == NULL)
 		return NULL;
@@ -230,7 +230,7 @@ geoip_block_new_local_user(void *data)
 				(struct sockaddr *) &client_p->localClient->ip,
 				GET_SS_FAMILY(&client_p->localClient->ip),
 				client_p->localClient->auth_user);
-	if (aconf != NULL && (aconf->status & CONF_EXEMPTKLINE))
+	if (aconf != NULL && IsConfExemptKline(aconf))
 		return;
 
 	country_code = get_country_code((struct sockaddr *)&client_p->localClient->ip);
@@ -243,7 +243,7 @@ geoip_block_new_local_user(void *data)
 			client_p->name, client_p->username, client_p->host,
 			client_p->sockhost, country_code ? country_code : "unknown");
 		
-		if (require_auth_for_blocked && !IsUser(client_p)) {
+		if (require_auth_for_blocked && !IsGotId(client_p)) {
 			/* Allow but require authentication */
 			return;
 		}
@@ -262,7 +262,7 @@ geoip_block_new_local_user(void *data)
 			client_p->name, client_p->username, client_p->host,
 			client_p->sockhost, asn ? asn : "unknown");
 		
-		if (require_auth_for_blocked && !IsUser(client_p)) {
+		if (require_auth_for_blocked && !IsGotId(client_p)) {
 			/* Allow but require authentication */
 			return;
 		}

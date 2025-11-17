@@ -25,6 +25,7 @@
 #include "s_serv.h"
 #include "s_user.h"
 #include "numeric.h"
+#include "s_newconf.h"
 
 static const char ip_ratelimit_desc[] = "Per-IP rate limiting to prevent abuse";
 
@@ -98,24 +99,11 @@ find_or_create_ip_limit(struct sockaddr *addr)
 	return limit;
 }
 
-static struct ip_rate_limit *
-find_ip_limit(struct sockaddr *addr)
-{
-	rb_patricia_node_t *pnode;
-
-	pnode = rb_match_ip(ip_ratelimit_tree, addr);
-	if (pnode != NULL)
-		return pnode->data;
-
-	return NULL;
-}
-
 static void
 check_ip_rate_limit(struct Client *client_p, const char *type)
 {
 	struct ip_rate_limit *limit;
 	time_t now = rb_current_time();
-	int bitlen = (GET_SS_FAMILY(&client_p->localClient->ip) == AF_INET) ? cidr_limit : 128;
 
 	if (!enabled || !MyClient(client_p) || IsOper(client_p))
 		return;

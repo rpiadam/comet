@@ -47,7 +47,7 @@ m_setname(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	}
 
 	rb_strlcpy(source_p->info, parv[1], sizeof(source_p->info));
-	sendto_common_channels_local(source_p, ":%s!%s@%s CHGHOST %s :%s",
+	sendto_common_channels_local(source_p, NOCAPS, NOCAPS, ":%s!%s@%s CHGHOST %s :%s",
 		source_p->name, source_p->username, source_p->host,
 		source_p->host, source_p->info);
 	sendto_one_notice(source_p, ":*** Realname changed to: %s", source_p->info);
