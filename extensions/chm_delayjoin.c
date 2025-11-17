@@ -18,8 +18,17 @@
 #include "s_user.h"
 #include "channel.h"
 #include "chmode.h"
+#include "logger.h"
+#include "hash.h"
 
 static const char chm_delayjoin_desc[] = "Adds channel mode +D, which delays JOIN until first message";
+
+/* Compatibility function - rb_dictionary_str_casecmp is an alias for rb_strcasecmp */
+static int
+rb_dictionary_str_casecmp(const void *a, const void *b)
+{
+	return rb_strcasecmp(a, b);
+}
 
 static unsigned int mode_delayjoin;
 
@@ -41,7 +50,7 @@ struct delayed_join {
 	rb_dlink_node node;
 };
 
-static rb_dictionary_t *delayed_joins;
+static rb_dictionary *delayed_joins;
 
 static void
 hook_join_channel(void *data_)
