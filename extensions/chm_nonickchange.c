@@ -19,6 +19,7 @@
 #include "channel.h"
 #include "chmode.h"
 #include "numeric.h"
+#include "logger.h"
 
 static const char chm_nonickchange_desc[] = "Adds channel mode +N, which disallows nick changes in channel";
 
