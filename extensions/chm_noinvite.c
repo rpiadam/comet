@@ -28,19 +28,19 @@ static unsigned int mode_noinvite;
 static void hook_invite_channel(void *);
 
 mapi_hfn_list_av1 chm_noinvite_hfnlist[] = {
-	{ "invite_channel", hook_invite_channel },
+	{ "invite", hook_invite_channel },
 	{ NULL, NULL }
 };
 
 static void
 hook_invite_channel(void *data_)
 {
-	hook_data_channel_invite *data = data_;
+	hook_data_channel_approval *data = data_;
 
 	if (!(data->chptr->mode.mode & mode_noinvite))
 		return;
 
-	sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOCHAN, form_str(ERR_CANNOTSENDTOCHAN),
+	sendto_one_numeric(data->client, ERR_CANNOTSENDTOCHAN, form_str(ERR_CANNOTSENDTOCHAN),
 		data->chptr->chname, "INVITE is disabled on this channel (+V)");
 	data->approved = ERR_CANNOTSENDTOCHAN;
 }

@@ -36,7 +36,7 @@ mapi_clist_av1 search_clist[] = { &search_msgtab, NULL };
 DECLARE_MODULE_AV2(m_search, NULL, NULL, search_clist, NULL, NULL, NULL, NULL, search_desc);
 
 /* Access history from chm_history extension */
-extern rb_dictionary_t *chm_history_dict_get(void);
+extern rb_dictionary *chm_history_dict_get(void);
 
 struct history_entry {
 	char *nick;
@@ -98,7 +98,7 @@ m_search(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	}
 
 	/* Search message history if available */
-	rb_dictionary_t *history_dict = chm_history_dict_get();
+	rb_dictionary *history_dict = chm_history_dict_get();
 	struct channel_history *hist = NULL;
 	if (history_dict != NULL) {
 		hist = rb_dictionary_retrieve(history_dict, chptr->chname);

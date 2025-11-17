@@ -34,7 +34,7 @@ struct Message delete_msgtab = {
 mapi_clist_av1 delete_clist[] = { &delete_msgtab, NULL };
 
 /* Share tracked messages with m_edit */
-extern rb_dictionary_t *tracked_messages;
+extern rb_dictionary *tracked_messages;
 
 struct tracked_message {
 	char *msgid;

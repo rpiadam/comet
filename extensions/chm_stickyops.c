@@ -38,7 +38,7 @@ struct channel_stickyops {
 	rb_dlink_node node;
 };
 
-static rb_dictionary_t *stickyops_dict;
+static rb_dictionary *stickyops_dict;
 
 static void hook_channel_join(void *);
 static void hook_after_client_exit(void *);

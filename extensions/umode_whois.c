@@ -19,7 +19,7 @@
 
 static const char umode_whois_desc[] = "Adds user mode +W which restricts WHOIS to operators";
 
-static rb_dictionary_t *whois_suppress_dict;
+static rb_dictionary *whois_suppress_dict;
 
 static void hook_doing_whois(void *);
 static void hook_doing_whois_global(void *);

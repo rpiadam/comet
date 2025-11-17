@@ -52,8 +52,8 @@ struct tracked_message {
 	rb_dlink_node node;
 };
 
-static rb_dictionary_t *edited_messages;
-static rb_dictionary_t *tracked_messages;
+static rb_dictionary *edited_messages;
+static rb_dictionary *tracked_messages;
 static unsigned int msgid_counter = 0;
 
 static char *

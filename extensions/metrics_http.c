@@ -47,7 +47,7 @@ static void metrics_http_timeout_callback(rb_fde_t *F, void *data);
 
 /* External references to metrics from metrics.c */
 extern struct server_metrics metrics;
-extern rb_dictionary_t *channel_metrics_dict;
+extern rb_dictionary *channel_metrics_dict;
 
 /* Forward declaration */
 struct channel_metrics {

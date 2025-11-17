@@ -43,10 +43,10 @@ struct channel_history {
 	rb_dlink_node node;
 };
 
-static rb_dictionary_t *history_dict;
+static rb_dictionary *history_dict;
 
 /* Export history_dict for use by other modules */
-rb_dictionary_t *chm_history_dict_get(void)
+rb_dictionary *chm_history_dict_get(void)
 {
 	return history_dict;
 }

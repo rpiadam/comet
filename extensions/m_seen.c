@@ -38,7 +38,7 @@ struct seen_entry {
 };
 
 /* Dictionary to store seen entries keyed by nickname */
-static rb_dictionary_t *seen_dict;
+static rb_dictionary *seen_dict;
 
 /* Forward declarations */
 static void m_seen(struct MsgBuf *, struct Client *, struct Client *, int, const char **);

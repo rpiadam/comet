@@ -37,7 +37,7 @@ struct channel_topic_history {
 	rb_dlink_node node;
 };
 
-static rb_dictionary_t *topic_history_dict;
+static rb_dictionary *topic_history_dict;
 
 struct Message topic_history_msgtab = {
 	"TOPICHISTORY", 0, 0, 0, 0,

@@ -43,7 +43,7 @@ struct server_metrics {
 };
 
 struct server_metrics metrics;
-rb_dictionary_t *channel_metrics_dict;
+rb_dictionary *channel_metrics_dict;
 static struct ev_entry *metrics_update_ev;
 
 static void hook_new_local_user(void *);

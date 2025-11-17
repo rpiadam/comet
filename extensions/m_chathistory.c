@@ -38,7 +38,7 @@ DECLARE_MODULE_AV2(m_chathistory, NULL, NULL, chathistory_clist, NULL, NULL, NUL
 
 /* Note: This requires chm_history extension to be loaded */
 /* Access history through exported function */
-extern rb_dictionary_t *chm_history_dict_get(void);
+extern rb_dictionary *chm_history_dict_get(void);
 
 /* CHATHISTORY capability - defined in modules/cap_chathistory.c */
 extern unsigned int CLICAP_CHATHISTORY;
@@ -131,7 +131,7 @@ m_chathistory(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 	}
 
 	/* Get history from chm_history extension if available */
-	rb_dictionary_t *history_dict = chm_history_dict_get();
+	rb_dictionary *history_dict = chm_history_dict_get();
 	if (history_dict == NULL)
 	{
 		sendto_one_notice(source_p, ":*** History not available (chm_history extension not loaded)");
