@@ -212,8 +212,10 @@ find_channel_status_viewer(struct membership *msptr, int combine, struct Client 
 		
 		/* If channel has anonymous mode and viewer is not an oper or op, hide op status */
 		/* Check for anonymous mode flag (set by chm_anonymous extension) */
-		extern unsigned int chm_anonymous_mode_flag;
-		if (chm_anonymous_mode_flag && (chptr->mode.mode & chm_anonymous_mode_flag))
+		/* Default to 0 if extension not loaded, extension will override this */
+		extern unsigned int chm_anonymous_mode_flag __attribute__((weak));
+		unsigned int anonymous_flag = chm_anonymous_mode_flag ? chm_anonymous_mode_flag : 0;
+		if (anonymous_flag && (chptr->mode.mode & anonymous_flag))
 		{
 			if (!IsOper(viewer) && (!viewer_msptr || !is_chanop(viewer_msptr)))
 				show_op = false;
