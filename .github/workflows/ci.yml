@@ -74,7 +74,7 @@ jobs:
           libsqlite3-dev \
           libhyperscan-dev \
           # EOF
-    - uses: actions/checkout@main
+    - uses: actions/checkout@v4
       with:
         persist-credentials: false
         submodules: recursive
