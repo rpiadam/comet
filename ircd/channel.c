@@ -220,7 +220,20 @@ find_channel_status_viewer(struct membership *msptr, int combine, struct Client 
 		}
 	}
 
-	if(is_chanop(msptr) && show_op)
+	/* Check status in hierarchy: owner > admin > op > halfop > voice */
+	if(is_owner(msptr))
+	{
+		if(!combine)
+			return "~";
+		*p++ = '~';
+	}
+	else if(is_admin(msptr))
+	{
+		if(!combine)
+			return "&";
+		*p++ = '&';
+	}
+	else if(is_chanop(msptr) && show_op)
 	{
 		if(!combine)
 			return "@";

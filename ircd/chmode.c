@@ -191,7 +191,11 @@ get_channel_access(struct Client *source_p, struct Channel *chptr, struct member
 	moduledata.target = NULL;
 	if (msptr != NULL)
 	{
-		if (is_chanop(msptr))
+		if (is_owner(msptr))
+			moduledata.approved = CHFL_OWNER;
+		else if (is_admin(msptr))
+			moduledata.approved = CHFL_ADMIN;
+		else if (is_chanop(msptr))
 			moduledata.approved = CHFL_CHANOP;
 		else if (is_halfop(msptr))
 			moduledata.approved = CHFL_HALFOP;
@@ -997,6 +1001,13 @@ chm_op(struct Client *source_p, struct Channel *chptr,
 		mode_changes[mode_count].id = targ_p->id;
 		mode_changes[mode_count++].arg = targ_p->name;
 
+		/* Clear lower status flags when setting op */
+		mstptr->flags &= ~CHFL_HALFOP;
+		/* Only clear owner/admin if source has permission (owner/admin can demote) */
+		if(alevel >= CHFL_OWNER)
+		{
+			mstptr->flags &= ~(CHFL_OWNER | CHFL_ADMIN);
+		}
 		mstptr->flags |= CHFL_CHANOP;
 	}
 	else
@@ -1015,6 +1026,182 @@ chm_op(struct Client *source_p, struct Channel *chptr,
 		mode_changes[mode_count++].arg = targ_p->name;
 
 		mstptr->flags &= ~CHFL_CHANOP;
+	}
+}
+
+void
+chm_admin(struct Client *source_p, struct Channel *chptr,
+	  int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
+{
+	struct membership *mstptr;
+	struct Client *targ_p;
+
+	/* Only owners can set/remove admin */
+	if(alevel < CHFL_OWNER)
+	{
+		if(!(*errors & SM_ERR_NOOPS))
+			sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+				   me.name, source_p->name, chptr->chname);
+		*errors |= SM_ERR_NOOPS;
+		return;
+	}
+
+	/* Check mlock */
+	if (MyClient(source_p) && chptr->mode_lock && strchr(chptr->mode_lock, c))
+	{
+		if (!(*errors & SM_ERR_MLOCK))
+			sendto_one_numeric(source_p,
+					ERR_MLOCKRESTRICTED,
+					form_str(ERR_MLOCKRESTRICTED),
+					chptr->chname,
+					c,
+					chptr->mode_lock);
+		*errors |= SM_ERR_MLOCK;
+		return;
+	}
+
+	/* empty nick */
+	if(EmptyString(arg))
+	{
+		sendto_one_numeric(source_p, ERR_NOSUCHNICK, form_str(ERR_NOSUCHNICK), "*");
+		return;
+	}
+
+	if((targ_p = find_chasing(source_p, arg, NULL)) == NULL)
+	{
+		return;
+	}
+
+	mstptr = find_channel_membership(chptr, targ_p);
+
+	if(mstptr == NULL)
+	{
+		if(!(*errors & SM_ERR_NOTONCHANNEL) && MyClient(source_p))
+			sendto_one_numeric(source_p, ERR_USERNOTINCHANNEL,
+					   form_str(ERR_USERNOTINCHANNEL), arg, chptr->chname);
+		*errors |= SM_ERR_NOTONCHANNEL;
+		return;
+	}
+
+	if(dir == MODE_ADD)
+	{
+		if(targ_p == source_p && mstptr->flags & CHFL_ADMIN)
+			return;
+
+		mode_changes[mode_count].letter = c;
+		mode_changes[mode_count].dir = MODE_ADD;
+		mode_changes[mode_count].mems = ALL_MEMBERS;
+		mode_changes[mode_count].id = targ_p->id;
+		mode_changes[mode_count++].arg = targ_p->name;
+
+		/* Clear lower status flags when setting admin */
+		mstptr->flags &= ~(CHFL_CHANOP | CHFL_HALFOP);
+		mstptr->flags |= CHFL_ADMIN;
+	}
+	else
+	{
+		if(MyClient(source_p) && IsService(targ_p))
+		{
+			sendto_one(source_p, form_str(ERR_ISCHANSERVICE),
+				   me.name, source_p->name, targ_p->name, chptr->chname);
+			return;
+		}
+
+		mode_changes[mode_count].letter = c;
+		mode_changes[mode_count].dir = MODE_DEL;
+		mode_changes[mode_count].mems = ALL_MEMBERS;
+		mode_changes[mode_count].id = targ_p->id;
+		mode_changes[mode_count++].arg = targ_p->name;
+
+		mstptr->flags &= ~CHFL_ADMIN;
+	}
+}
+
+void
+chm_owner(struct Client *source_p, struct Channel *chptr,
+	 int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
+{
+	struct membership *mstptr;
+	struct Client *targ_p;
+
+	/* Only owners can set/remove owner */
+	if(alevel < CHFL_OWNER)
+	{
+		if(!(*errors & SM_ERR_NOOPS))
+			sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+				   me.name, source_p->name, chptr->chname);
+		*errors |= SM_ERR_NOOPS;
+		return;
+	}
+
+	/* Check mlock */
+	if (MyClient(source_p) && chptr->mode_lock && strchr(chptr->mode_lock, c))
+	{
+		if (!(*errors & SM_ERR_MLOCK))
+			sendto_one_numeric(source_p,
+					ERR_MLOCKRESTRICTED,
+					form_str(ERR_MLOCKRESTRICTED),
+					chptr->chname,
+					c,
+					chptr->mode_lock);
+		*errors |= SM_ERR_MLOCK;
+		return;
+	}
+
+	/* empty nick */
+	if(EmptyString(arg))
+	{
+		sendto_one_numeric(source_p, ERR_NOSUCHNICK, form_str(ERR_NOSUCHNICK), "*");
+		return;
+	}
+
+	if((targ_p = find_chasing(source_p, arg, NULL)) == NULL)
+	{
+		return;
+	}
+
+	mstptr = find_channel_membership(chptr, targ_p);
+
+	if(mstptr == NULL)
+	{
+		if(!(*errors & SM_ERR_NOTONCHANNEL) && MyClient(source_p))
+			sendto_one_numeric(source_p, ERR_USERNOTINCHANNEL,
+					   form_str(ERR_USERNOTINCHANNEL), arg, chptr->chname);
+		*errors |= SM_ERR_NOTONCHANNEL;
+		return;
+	}
+
+	if(dir == MODE_ADD)
+	{
+		if(targ_p == source_p && mstptr->flags & CHFL_OWNER)
+			return;
+
+		mode_changes[mode_count].letter = c;
+		mode_changes[mode_count].dir = MODE_ADD;
+		mode_changes[mode_count].mems = ALL_MEMBERS;
+		mode_changes[mode_count].id = targ_p->id;
+		mode_changes[mode_count++].arg = targ_p->name;
+
+		/* Clear lower status flags when setting owner */
+		mstptr->flags &= ~(CHFL_ADMIN | CHFL_CHANOP | CHFL_HALFOP);
+		mstptr->flags |= CHFL_OWNER;
+	}
+	else
+	{
+		if(MyClient(source_p) && IsService(targ_p))
+		{
+			sendto_one(source_p, form_str(ERR_ISCHANSERVICE),
+				   me.name, source_p->name, targ_p->name, chptr->chname);
+			return;
+		}
+
+		mode_changes[mode_count].letter = c;
+		mode_changes[mode_count].dir = MODE_DEL;
+		mode_changes[mode_count].mems = ALL_MEMBERS;
+		mode_changes[mode_count].id = targ_p->id;
+		mode_changes[mode_count++].arg = targ_p->name;
+
+		mstptr->flags &= ~CHFL_OWNER;
 	}
 }
 
@@ -1081,7 +1268,9 @@ chm_halfop(struct Client *source_p, struct Channel *chptr,
 	struct Client *targ_p;
 
 	/* Halfops can be set by ops or halfops */
-	if(alevel < CHFL_CHANOP && alevel < CHFL_HALFOP)
+	/* Since CHFL_HALFOP (0x0004) > CHFL_CHANOP (0x0002), we check if alevel is less than CHFL_CHANOP */
+	/* This allows both chanops (CHFL_CHANOP) and halfops (CHFL_HALFOP) to set halfop mode */
+	if(alevel < CHFL_CHANOP)
 	{
 		if(!(*errors & SM_ERR_NOOPS))
 			sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
@@ -1385,6 +1574,7 @@ struct ChannelMode chmode_table[256] =
   ['k'] = {chm_key,       0,               CHM_QUERYABLE },
   ['l'] = {chm_limit,     0,               CHM_ARG_SET },
   ['m'] = {chm_simple,    MODE_MODERATED,  0 },
+  ['a'] = {chm_admin,     0,               CHM_ARGS },
   ['n'] = {chm_simple,    MODE_NOPRIVMSGS, 0 },
   ['o'] = {chm_op,        0,               CHM_ARGS },
   ['p'] = {chm_simple,    MODE_PRIVATE,    0 },
@@ -1393,6 +1583,7 @@ struct ChannelMode chmode_table[256] =
   ['s'] = {chm_simple,    MODE_SECRET,     0 },
   ['t'] = {chm_simple,    MODE_TOPICLIMIT, 0 },
   ['v'] = {chm_voice,     0,               CHM_ARGS },
+  ['y'] = {chm_owner,     0,               CHM_ARGS },
   ['z'] = {chm_simple,    MODE_OPMODERATE, 0 },
   ['U'] = {chm_simple,    MODE_HIDEBANS, 0 },
 };
